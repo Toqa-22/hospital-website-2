@@ -551,32 +551,30 @@
       w.document.write(`<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8">
       <title>تقرير الملاحظات</title>
       <style>
-        body{font-family:'Segoe UI',Arial,sans-serif;direction:rtl;padding:2rem;font-size:11pt;color:#0F1923}
-        .rpt-header{text-align:center;margin-bottom:1rem}
-        .rpt-header .logo{width:100px;height:100px;object-fit:contain;display:block;margin:0 auto .6rem}
-        h1{color:#072A4A;margin:0 0 .15rem;font-size:14pt}
-        h2{color:#072A4A;margin:0 0 .5rem;font-size:13pt;font-weight:600}
-        .gen-date{font-size:8.5pt;color:#666;margin-bottom:.5rem}
-        .date-range{background:#072A4A;color:#fff;padding:.6rem 1rem;border-radius:6px;font-size:10pt;margin-bottom:1.25rem;display:inline-block}
-        .filters{font-size:9pt;color:#4A5F73;margin-bottom:1.25rem}
+        body{font-family:'Segoe UI',Arial,sans-serif;direction:rtl;padding:2rem;font-size:16pt;color:#0F1923}
+        .rpt-header{display:flex;align-items:center;gap:1.25rem;margin-bottom:1rem}
+        .rpt-header .logo{width:200px;height:200px;object-fit:contain;flex-shrink:0}
+        .filters{font-size:13pt;color:#4A5F73;margin-bottom:1.25rem}
         .filters span{margin-left:1rem}
         .kpis{display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:1.5rem}
         .kpi{border:1.5px solid #D5DDE5;border-radius:6px;padding:.65rem 1rem;text-align:center;min-width:100px}
         .kpi .v{font-size:1.5rem;font-weight:700;color:#072A4A}
         .kpi .l{font-size:8.5pt;color:#4A5F73}
-        h3{color:#072A4A;margin:1.25rem 0 .4rem;font-size:11pt;border-bottom:2px solid #072A4A;padding-bottom:.3rem}
-        table{width:100%;border-collapse:collapse;margin-bottom:1.25rem;font-size:10pt}
-        th{background:#072A4A;color:#fff;padding:6px 9px;text-align:right}
-        td{padding:6px 9px;border-bottom:1px solid #eee}
-        tfoot td{background:#EEF2F6;font-weight:700}
+        h3{color:#072A4A;margin:1.25rem 0 .4rem;font-size:14pt;border-bottom:2px solid #072A4A;padding-bottom:.3rem}
+        table{width:100%;border-collapse:collapse;margin-bottom:1.25rem;font-size:15pt}
+        th{background:#072A4A;color:#fff;padding:10px 14px;text-align:right}
+        td{padding:10px 14px;border-bottom:1px solid #eee}
+        tfoot td{background:#072A4A;color:#fff;font-weight:700}
         .cols{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem}
         @media print{body{padding:.5cm}.kpis{page-break-inside:avoid}}
       </style></head><body>
       <div class="rpt-header">
         ${_logoBase64 ? `<img src="${_logoBase64}" class="logo">` : ''}
-        <h1>مستشفى إبراء — قسم العلاقات العامة والإعلام</h1>
-        <h2>تقرير الشكاوى والاقتراحات</h2>
-        <p class="gen-date">تاريخ الإنشاء: ${new Date().toLocaleDateString('ar-OM')}</p>
+        <div>
+          <h1>مستشفى إبراء — قسم العلاقات العامة والإعلام</h1>
+          <h2>تقرير الشكاوى والاقتراحات</h2>
+          <p class="gen-date">تاريخ الإنشاء: ${new Date().toLocaleDateString('ar-OM')}</p>
+        </div>
       </div>
       <div class="date-range">📅 الفترة: ${filters.dateFrom || filters.dateTo ? `${fmtDateAr(filters.dateFrom)} — ${fmtDateAr(filters.dateTo)}` : 'جميع التواريخ'}</div>
       ${(filters.caseType || deptBannerText || filters.priority) ? `<div class="filters">
@@ -663,24 +661,24 @@
       w.document.write(`<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8">
       <title>تقرير الإصابات</title>
       <style>
-        body{font-family:'Segoe UI',Arial,sans-serif;direction:rtl;padding:2rem;font-size:11pt;color:#0F1923}
-        .rpt-header{text-align:center;margin-bottom:1rem}
-        .rpt-header .logo{width:100px;height:100px;object-fit:contain;display:block;margin:0 auto .6rem}
-        h1{color:#072A4A;margin:0 0 .15rem;font-size:14pt}
-        h2{color:#072A4A;margin:0 0 .5rem;font-size:13pt;font-weight:600}
-        .date-range{background:#072A4A;color:#fff;padding:.6rem 1rem;border-radius:6px;font-size:10pt;margin-bottom:1.5rem;display:inline-block}
-        table{width:100%;border-collapse:collapse;margin-top:1rem;font-size:10.5pt}
-        th{background:#072A4A;color:#fff;padding:7px 10px;text-align:right}
-        td{padding:7px 10px;border-bottom:1px solid #eee}
-        tfoot td{background:#EEF2F6;font-weight:700}
+        body{font-family:'Segoe UI',Arial,sans-serif;direction:rtl;padding:2rem;font-size:16pt;color:#0F1923}
+        .rpt-header{display:flex;align-items:center;gap:1.25rem;margin-bottom:1rem}
+        .rpt-header .logo{width:200px;height:200px;object-fit:contain;flex-shrink:0}
+        .date-range{background:#072A4A;color:#fff;padding:.5rem .9rem;border-radius:6px;font-size:11pt;margin-bottom:1.5rem;display:block;text-align:center}
+        table{width:100%;border-collapse:collapse;margin-top:1rem;font-size:15pt}
+        th{background:#072A4A;color:#fff;padding:10px 14px;text-align:right}
+        td{padding:10px 14px;border-bottom:1px solid #eee}
+        tfoot td{background:#072A4A;color:#fff;font-weight:700}
         .gen-date{font-size:8.5pt;color:#666;margin-bottom:.5rem}
         @media print{body{padding:.5cm}}
       </style></head><body>
       <div class="rpt-header">
         ${_logoBase64 ? `<img src="${_logoBase64}" class="logo">` : ''}
-        <h1>مستشفى إبراء — قسم العلاقات العامة والإعلام</h1>
-        <h2>تقرير الإصابات</h2>
-        <p class="gen-date">تاريخ الإنشاء: ${new Date().toLocaleDateString('ar-OM')}</p>
+        <div>
+          <h1>مستشفى إبراء — قسم العلاقات العامة والإعلام</h1>
+          <h2>تقرير الإصابات</h2>
+          <p class="gen-date">تاريخ الإنشاء: ${new Date().toLocaleDateString('ar-OM')}</p>
+        </div>
       </div>
       <div class="date-range">📅 الفترة: ${fmtDateAr(_evDateFrom)} — ${fmtDateAr(_evDateTo)}</div>
       <table>
