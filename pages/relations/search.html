@@ -143,11 +143,24 @@
             </div>
             <div class="divider"></div>
             <strong class="text-sm" style="color:var(--primary-dark)">🔍 بحث في الأحداث</strong>
-            <div class="filter-row" style="margin-top:.75rem">
-              <div class="search-bar" style="flex:1;max-width:320px"><span>🔍</span><input type="text" id="ev-srch"
-                  placeholder="بحث..."></div>
+            <div class="filter-row" style="margin-top:.75rem;flex-wrap:wrap;gap:.5rem">
+              <div class="search-bar" style="flex:1;min-width:200px;max-width:360px">
+                <span>🔍</span>
+                <input type="text" id="ev-srch" placeholder="اسم المريض، رقم الملف، الهاتف، اسم الشرطي..." autocomplete="off">
+              </div>
+              <select class="form-control" id="ev-srch-type" style="width:170px" onchange="searchEvents()">
+                <option value="">جميع الأنواع</option>
+                <option>حادث سير</option><option>حادث سقوط</option><option>حادث تسمم</option>
+                <option>حادث اعتداء</option><option>حادث غرق</option><option>حادث التماس كهربائي</option>
+                <option>حادث في المستشفى</option><option>حادث حرق</option><option>إصابة في مكان العمل</option>
+              </select>
+              <select class="form-control" id="ev-srch-shift" style="width:130px" onchange="searchEvents()">
+                <option value="">جميع الفترات</option>
+                <option>صباحي</option><option>مسائي</option><option>ليلي</option>
+              </select>
               <button class="btn btn-accent btn-sm" onclick="loadEvAll()">تحميل الكل</button>
             </div>
+            <div id="ev-srch-count" class="text-sm text-muted" style="margin:.4rem 0"></div>
             <div class="table-wrapper">
               <table id="ev-all">
                 <thead>
@@ -164,7 +177,7 @@
                 </thead>
                 <tbody id="ev-all-body">
                   <tr>
-                    <td colspan="8" class="text-center text-muted" style="padding:1.5rem">اضغط "تحميل الكل"</td>
+                    <td colspan="8" class="text-center text-muted" style="padding:1.5rem">اكتب للبحث أو اضغط "تحميل الكل"</td>
                   </tr>
                 </tbody>
               </table>
@@ -242,11 +255,27 @@
 
             <div class="divider"></div>
             <strong class="text-sm" style="color:var(--primary-dark)">🔍 بحث في الملاحظات</strong>
-            <div class="filter-row" style="margin-top:.75rem">
-              <div class="search-bar" style="flex:1;max-width:320px"><span>🔍</span><input type="text" id="fb-srch"
-                  placeholder="بحث..."></div>
+            <div class="filter-row" style="margin-top:.75rem;flex-wrap:wrap;gap:.5rem">
+              <div class="search-bar" style="flex:1;min-width:200px;max-width:360px">
+                <span>🔍</span>
+                <input type="text" id="fb-srch" placeholder="اسم المريض، رقم الملف، اسم المشتكي، القسم..." autocomplete="off">
+              </div>
+              <select class="form-control" id="fb-srch-type" style="width:130px" onchange="searchFeedback()">
+                <option value="">جميع الأنواع</option>
+                <option>شكر</option><option>اقتراح</option><option>شكوى</option>
+              </select>
+              <select class="form-control" id="fb-srch-pri" style="width:130px" onchange="searchFeedback()">
+                <option value="">كل التصنيفات</option>
+                <option>منخفضة</option><option>متوسطة</option><option>عاجلة</option>
+              </select>
+              <select class="form-control" id="fb-srch-replied" style="width:130px" onchange="searchFeedback()">
+                <option value="">كل الحالات</option>
+                <option value="false">معلق</option>
+                <option value="true">تم الرد</option>
+              </select>
               <button class="btn btn-accent btn-sm" onclick="loadFbAll()">تحميل الكل</button>
             </div>
+            <div id="fb-srch-count" class="text-sm text-muted" style="margin:.4rem 0"></div>
             <div class="table-wrapper">
               <table id="fb-all">
                 <thead>
@@ -264,7 +293,7 @@
                 </thead>
                 <tbody id="fb-all-body">
                   <tr>
-                    <td colspan="9" class="text-center text-muted" style="padding:1.5rem">اضغط "تحميل الكل"</td>
+                    <td colspan="9" class="text-center text-muted" style="padding:1.5rem">اكتب للبحث أو اضغط "تحميل الكل"</td>
                   </tr>
                 </tbody>
               </table>
@@ -295,8 +324,7 @@
       document.getElementById('ef').value = agoISO; document.getElementById('et').value = today;
       document.getElementById('fbf').value = agoISO; document.getElementById('fbt2').value = today;
       populateDeptCheckboxes();
-      setupTableSearch('ev-srch', 'ev-all');
-      setupTableSearch('fb-srch', 'fb-all');
+
     }
 
     function localISO(d) {
@@ -664,38 +692,119 @@
       w.document.close();
     }
 
+    // ── Events search ─────────────────────────────────────────────────────
+    let _evTimer = null;
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('ev-srch').addEventListener('input', () => {
+        clearTimeout(_evTimer);
+        _evTimer = setTimeout(searchEvents, 400);
+      });
+      document.getElementById('fb-srch').addEventListener('input', () => {
+        clearTimeout(_fbTimer);
+        _fbTimer = setTimeout(searchFeedback, 400);
+      });
+    });
+
+    function renderEvRows(data) {
+      const tbody = document.getElementById('ev-all-body');
+      document.getElementById('ev-srch-count').textContent = data.length ? `${data.length} نتيجة` : '';
+      tbody.innerHTML = (data || []).map(e =>
+        `<tr><td>${e.event_date}</td><td>${e.shift || '—'}</td><td>${e.patient_name}</td><td><code>${e.file_number}</code></td><td dir="ltr">${e.phone || '—'}</td><td>${e.officer_name || '—'}</td><td>${eventTypeLabel(e.case_type)}</td><td>${e.notes || '—'}</td></tr>`
+      ).join('') || '<tr><td colspan="8" class="text-center text-muted" style="padding:1.5rem">لا توجد نتائج</td></tr>';
+    }
+
+    async function searchEvents() {
+      const q = document.getElementById('ev-srch').value.trim();
+      const type = document.getElementById('ev-srch-type').value;
+      const shift = document.getElementById('ev-srch-shift').value;
+      showLoading();
+      try {
+        let query = supabase.from('daily_events').select('*').order('event_date', { ascending: false }).limit(300);
+        if (type) query = query.eq('case_type', type);
+        if (shift) query = query.eq('shift', shift);
+        if (q) {
+          query = query.or(
+            `patient_name.ilike.%${q}%,file_number.ilike.%${q}%,phone.ilike.%${q}%,officer_name.ilike.%${q}%,notes.ilike.%${q}%`
+          );
+        }
+        const { data, error } = await query;
+        if (error) throw error;
+        renderEvRows(data || []);
+      } catch (err) { showToast('خطأ', err.message, 'danger'); }
+      finally { hideLoading(); }
+    }
+
     async function loadEvAll() {
+      document.getElementById('ev-srch').value = '';
+      document.getElementById('ev-srch-type').value = '';
+      document.getElementById('ev-srch-shift').value = '';
       showLoading();
       try {
         const { data, error } = await supabase.from('daily_events').select('*').order('event_date', { ascending: false }).limit(500);
         if (error) throw error;
-        document.getElementById('ev-all-body').innerHTML = (data || []).map(e => `<tr><td>${e.event_date}</td><td>${e.shift || '—'}</td><td>${e.patient_name}</td><td><code>${e.file_number}</code></td><td dir="ltr">${e.phone || '—'}</td><td>${e.officer_name || '—'}</td><td>${eventTypeLabel(e.case_type)}</td><td>${e.notes || '—'}</td></tr>`).join('') || '<tr><td colspan="8" class="text-center text-muted">لا توجد بيانات</td></tr>';
+        renderEvRows(data || []);
+      } catch (err) { showToast('خطأ', err.message, 'danger'); }
+      finally { hideLoading(); }
+    }
+
+    // ── Feedback search ───────────────────────────────────────────────────
+    let _fbTimer = null;
+
+    function renderFbRows(data) {
+      const tbody = document.getElementById('fb-all-body');
+      document.getElementById('fb-srch-count').textContent = data.length ? `${data.length} نتيجة` : '';
+      tbody.innerHTML = (data || []).map(fb => {
+        const fwd = (fb.forwarded_depts || []);
+        const fwdHtml = fwd.length
+          ? fwd.map(d => `<span class="badge badge-blue" style="margin:1px;font-size:.65rem">${d}</span>`).join('')
+          : '<span class="badge badge-gray" style="font-size:.65rem">—</span>';
+        return `<tr>
+          <td>${fb.submitted_date}</td>
+          <td>${fb.patient_name}</td>
+          <td><code>${fb.file_number}</code></td>
+          <td>${fb.reporter_name}</td>
+          <td class="text-sm">${fb.department || '—'}</td>
+          <td class="text-sm">${fwdHtml}</td>
+          <td>${caseTypeLabel(fb.case_type)}</td>
+          <td>${priorityLabel(fb.priority)}</td>
+          <td>${fb.replied ? '<span class="badge badge-green">تم الرد</span>' : '<span class="badge badge-red">معلق</span>'}</td>
+        </tr>`;
+      }).join('') || '<tr><td colspan="9" class="text-center text-muted" style="padding:1.5rem">لا توجد نتائج</td></tr>';
+    }
+
+    async function searchFeedback() {
+      const q = document.getElementById('fb-srch').value.trim();
+      const type = document.getElementById('fb-srch-type').value;
+      const pri = document.getElementById('fb-srch-pri').value;
+      const replied = document.getElementById('fb-srch-replied').value;
+      showLoading();
+      try {
+        let query = supabase.from('feedback').select('*').order('submitted_date', { ascending: false }).limit(300);
+        if (type) query = query.eq('case_type', type);
+        if (pri) query = query.eq('priority', pri);
+        if (replied !== '') query = query.eq('replied', replied === 'true');
+        if (q) {
+          query = query.or(
+            `patient_name.ilike.%${q}%,file_number.ilike.%${q}%,reporter_name.ilike.%${q}%,phone.ilike.%${q}%,department.ilike.%${q}%,description.ilike.%${q}%`
+          );
+        }
+        const { data, error } = await query;
+        if (error) throw error;
+        renderFbRows(data || []);
       } catch (err) { showToast('خطأ', err.message, 'danger'); }
       finally { hideLoading(); }
     }
 
     async function loadFbAll() {
+      document.getElementById('fb-srch').value = '';
+      document.getElementById('fb-srch-type').value = '';
+      document.getElementById('fb-srch-pri').value = '';
+      document.getElementById('fb-srch-replied').value = '';
       showLoading();
       try {
         const { data, error } = await supabase.from('feedback').select('*').order('submitted_date', { ascending: false }).limit(500);
         if (error) throw error;
-        document.getElementById('fb-all-body').innerHTML = (data || []).map(fb => {
-          const fwd = (fb.forwarded_depts || []);
-          const fwdHtml = fwd.length
-            ? fwd.map(d => `<span class="badge badge-blue" style="margin:1px;font-size:.65rem">${d}</span>`).join('')
-            : '<span class="badge badge-gray" style="font-size:.65rem">—</span>';
-          return `<tr>
-            <td>${fb.submitted_date}</td>
-            <td>${fb.patient_name}</td>
-            <td><code>${fb.file_number}</code></td>
-            <td>${fb.reporter_name}</td>
-            <td class="text-sm">${fb.department || '—'}</td>
-            <td class="text-sm">${fwdHtml}</td>
-            <td>${caseTypeLabel(fb.case_type)}</td>
-            <td>${priorityLabel(fb.priority)}</td>
-            <td>${fb.replied ? '<span class="badge badge-green">تم الرد</span>' : '<span class="badge badge-red">معلق</span>'}</td>
-          </tr>`;
-        }).join('') || '<tr><td colspan="9" class="text-center text-muted">لا توجد بيانات</td></tr>';
+        renderFbRows(data || []);
       } catch (err) { showToast('خطأ', err.message, 'danger'); }
       finally { hideLoading(); }
     }
