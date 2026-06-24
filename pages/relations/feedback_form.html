@@ -54,12 +54,12 @@
   if (user) {
     document.getElementById('sidebar-container').innerHTML = user.role==='relations' ? sidebarRelations(user) : sidebarDept(user);
     document.getElementById('topbar-container').innerHTML = topBar('نموذج الملاحظات', 'تسجيل شكوى / اقتراح / شكر');
-    populateDeptSelect(document.getElementById('dept'), user.deptName);
+    populateDeptSelect(document.getElementById('dept'), '');
   }
 
   function reset() {
     document.getElementById('ff').reset();
-    populateDeptSelect(document.getElementById('dept'), user ? user.deptName : '');
+    populateDeptSelect(document.getElementById('dept'), '');
   }
 
   async function save(e) {
