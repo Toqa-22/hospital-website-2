@@ -1,8 +1,3 @@
-// ====================================================
-// SHARED UTILITIES
-// ====================================================
-
-// Toast
 function showToast(title, msg, type) {
   var icons = { success:'✅', danger:'❌', warning:'⚠️', info:'ℹ️' };
   let c = document.getElementById('toast-container');
@@ -14,11 +9,9 @@ function showToast(title, msg, type) {
   setTimeout(() => { t.style.opacity='0'; t.style.transition='.3s'; setTimeout(()=>t.remove(),300); }, 3500);
 }
 
-// Loading spinner
 function showLoading() { const e=document.getElementById('loading-overlay'); if(e) e.classList.add('show'); }
 function hideLoading() { const e=document.getElementById('loading-overlay'); if(e) e.classList.remove('show'); }
 
-// Auth
 function getCurrentUser() {
   try { return JSON.parse(sessionStorage.getItem('hospital_user')); } catch { return null; }
 }
@@ -37,7 +30,6 @@ function logout() {
   window.location.href = root + 'index.html';
 }
 
-// Date helpers
 function todayISO() { return new Date().toISOString().split('T')[0]; }
 function formatDate(s) {
   if (!s) return '—';
@@ -48,7 +40,6 @@ function formatDateTime(s) {
   return new Date(s).toLocaleString('ar-OM', {year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
 }
 
-// Department select
 function populateDeptSelect(el, selected) {
   if (!el) return;
   el.innerHTML = '<option value="">-- اختر القسم --</option>';
@@ -60,7 +51,6 @@ function populateDeptSelect(el, selected) {
   });
 }
 
-// Dept checkboxes
 function renderDeptCheckboxes(id, selected) {
   var c = document.getElementById(id); if (!c) return;
   c.innerHTML = '';
@@ -77,7 +67,6 @@ function getCheckedDepts(id) {
   return [...document.querySelectorAll(`#${id} input[name="dept_cb"]:checked`)].map(c=>c.value);
 }
 
-// Table search
 function setupTableSearch(inputId, tableId) {
   var inp = document.getElementById(inputId);
   var tbl = document.getElementById(tableId);
@@ -88,7 +77,6 @@ function setupTableSearch(inputId, tableId) {
   });
 }
 
-// Print
 function printSection(id, title) {
   var el = document.getElementById(id); if (!el) return;
   var w = window.open('','_blank','width=950,height=700');
@@ -105,7 +93,6 @@ function printSection(id, title) {
   w.document.close();
 }
 
-// Badge helpers
 function caseTypeLabel(t) {
   var m={'شكوى':'case-complaint','اقتراح':'badge-blue','شكر':'case-thanks'};
   return `<span class="badge ${m[t]||'badge-gray'}">${t||'—'}</span>`;
@@ -120,11 +107,10 @@ function eventTypeLabel(t) {
   return `<span class="badge ${c[t]||'badge-gray'}">${t||'—'}</span>`;
 }
 
-// Sidebar - Relations
 function sidebarRelations(user) {
-  return `<div class="sidebar">
+  return `<div class="sidebar" id="main-sidebar">
     <div class="sidebar-header">
-      <div class="sidebar-logo">
+      <div class="sidebar-logo" onclick="toggleSidebar()" title="إخفاء/إظهار القائمة">
         <div class="sidebar-logo-icon">🏥</div>
         <div class="sidebar-logo-text"><strong>مستشفى إبراء</strong><span>نظام الإدارة</span></div>
       </div>
@@ -151,11 +137,10 @@ function sidebarRelations(user) {
   </div>`;
 }
 
-// Sidebar - Department
 function sidebarDept(user) {
-  return `<div class="sidebar">
+  return `<div class="sidebar" id="main-sidebar">
     <div class="sidebar-header">
-      <div class="sidebar-logo">
+      <div class="sidebar-logo" onclick="toggleSidebar()" title="إخفاء/إظهار القائمة">
         <div class="sidebar-logo-icon">🏥</div>
         <div class="sidebar-logo-text"><strong>مستشفى إبراء</strong><span>نظام الإدارة</span></div>
       </div>
@@ -175,7 +160,6 @@ function sidebarDept(user) {
   </div>`;
 }
 
-// Top bar
 function topBar(title, subtitle) {
   return `<div class="topbar">
     <div class="topbar-title"><h1>${title}</h1>${subtitle?`<p>${subtitle}</p>`:''}</div>
@@ -183,7 +167,19 @@ function topBar(title, subtitle) {
   </div>`;
 }
 
-// Active nav highlight
+function toggleSidebar() {
+  var sidebar = document.getElementById('main-sidebar');
+  var main = document.querySelector('.main-content');
+  var btn = document.getElementById('sidebar-toggle-fab');
+  if (!sidebar) return;
+  var collapsed = sidebar.classList.toggle('collapsed');
+  if (main) main.classList.toggle('sidebar-collapsed', collapsed);
+  if (btn) {
+    btn.textContent = collapsed ? '☰' : '✕';
+    btn.classList.toggle('visible', collapsed);
+  }
+}
+
 function setActiveNav() {
   var path = window.location.pathname;
   document.querySelectorAll('.sidebar-nav a').forEach(a => {
@@ -191,11 +187,24 @@ function setActiveNav() {
   });
 }
 
-// Live clock
 function startClock() {
   var el = document.getElementById('live-date'); if (!el) return;
   var tick = () => el.textContent = new Date().toLocaleString('ar-OM',{weekday:'short',year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
   tick(); setInterval(tick, 60000);
 }
 
-document.addEventListener('DOMContentLoaded', () => { startClock(); setActiveNav(); });
+function injectToggleFab() {
+  var fab = document.createElement('button');
+  fab.id = 'sidebar-toggle-fab';
+  fab.className = 'sidebar-toggle-btn';
+  fab.textContent = '☰';
+  fab.title = 'إظهار القائمة';
+  fab.onclick = toggleSidebar;
+  document.body.appendChild(fab);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  injectToggleFab();
+  startClock();
+  setActiveNav();
+});
