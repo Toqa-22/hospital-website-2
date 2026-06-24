@@ -1,16 +1,16 @@
 function showToast(title, msg, type) {
-  var icons = { success:'✅', danger:'❌', warning:'⚠️', info:'ℹ️' };
+  var icons = { success: '✅', danger: '❌', warning: '⚠️', info: 'ℹ️' };
   let c = document.getElementById('toast-container');
   if (!c) { c = document.createElement('div'); c.id = 'toast-container'; document.body.appendChild(c); }
   var t = document.createElement('div');
-  t.className = 'toast ' + (type||'info');
-  t.innerHTML = `<span class="toast-icon">${icons[type]||'ℹ️'}</span><div class="toast-body"><div class="toast-title">${title}</div>${msg?`<div>${msg}</div>`:''}</div>`;
+  t.className = 'toast ' + (type || 'info');
+  t.innerHTML = `<span class="toast-icon">${icons[type] || 'ℹ️'}</span><div class="toast-body"><div class="toast-title">${title}</div>${msg ? `<div>${msg}</div>` : ''}</div>`;
   c.appendChild(t);
-  setTimeout(() => { t.style.opacity='0'; t.style.transition='.3s'; setTimeout(()=>t.remove(),300); }, 3500);
+  setTimeout(() => { t.style.opacity = '0'; t.style.transition = '.3s'; setTimeout(() => t.remove(), 300); }, 3500);
 }
 
-function showLoading() { const e=document.getElementById('loading-overlay'); if(e) e.classList.add('show'); }
-function hideLoading() { const e=document.getElementById('loading-overlay'); if(e) e.classList.remove('show'); }
+function showLoading() { const e = document.getElementById('loading-overlay'); if (e) e.classList.add('show'); }
+function hideLoading() { const e = document.getElementById('loading-overlay'); if (e) e.classList.remove('show'); }
 
 function getCurrentUser() {
   try { return JSON.parse(sessionStorage.getItem('hospital_user')); } catch { return null; }
@@ -33,11 +33,11 @@ function logout() {
 function todayISO() { return new Date().toISOString().split('T')[0]; }
 function formatDate(s) {
   if (!s) return '—';
-  return new Date(s).toLocaleDateString('ar-OM', {year:'numeric',month:'short',day:'numeric'});
+  return new Date(s).toLocaleDateString('ar-OM', { year: 'numeric', month: 'short', day: 'numeric' });
 }
 function formatDateTime(s) {
   if (!s) return '—';
-  return new Date(s).toLocaleString('ar-OM', {year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+  return new Date(s).toLocaleString('ar-OM', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
 }
 
 function populateDeptSelect(el, selected) {
@@ -57,36 +57,36 @@ function renderDeptCheckboxes(id, selected) {
   ALL_DEPARTMENTS.forEach(d => {
     const lbl = document.createElement('label');
     const cb = document.createElement('input');
-    cb.type='checkbox'; cb.value=d; cb.name='dept_cb';
-    if ((selected||[]).includes(d)) cb.checked=true;
-    lbl.appendChild(cb); lbl.appendChild(document.createTextNode(' '+d));
+    cb.type = 'checkbox'; cb.value = d; cb.name = 'dept_cb';
+    if ((selected || []).includes(d)) cb.checked = true;
+    lbl.appendChild(cb); lbl.appendChild(document.createTextNode(' ' + d));
     c.appendChild(lbl);
   });
 }
 function getCheckedDepts(id) {
-  return [...document.querySelectorAll(`#${id} input[name="dept_cb"]:checked`)].map(c=>c.value);
+  return [...document.querySelectorAll(`#${id} input[name="dept_cb"]:checked`)].map(c => c.value);
 }
 
 function setupTableSearch(inputId, tableId) {
   var inp = document.getElementById(inputId);
   var tbl = document.getElementById(tableId);
-  if (!inp||!tbl) return;
+  if (!inp || !tbl) return;
   inp.addEventListener('input', () => {
     const q = inp.value.toLowerCase();
-    tbl.querySelectorAll('tbody tr').forEach(r => { r.style.display = r.textContent.toLowerCase().includes(q)?'':'none'; });
+    tbl.querySelectorAll('tbody tr').forEach(r => { r.style.display = r.textContent.toLowerCase().includes(q) ? '' : 'none'; });
   });
 }
 
 function printSection(id, title) {
   var el = document.getElementById(id); if (!el) return;
-  var w = window.open('','_blank','width=950,height=700');
-  w.document.write(`<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><title>${title||'تقرير'}</title>
+  var w = window.open('', '_blank', 'width=950,height=700');
+  w.document.write(`<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><title>${title || 'تقرير'}</title>
   <style>body{font-family:'Segoe UI',Arial,sans-serif;direction:rtl;padding:2rem;font-size:11pt}
   h2{color:#0B3D6B}table{width:100%;border-collapse:collapse}
   th{background:#0B3D6B;color:#fff;padding:7px 9px;text-align:right;font-size:9pt}
   td{padding:6px 9px;border-bottom:1px solid #ddd;font-size:9pt}
   @media print{body{padding:0}}</style></head><body>
-  <h2>🏥 مستشفى إبراء — ${title||''}</h2>
+  <h2>🏥 مستشفى إبراء — ${title || ''}</h2>
   <p style="color:#666;font-size:9pt;margin-bottom:1rem">${new Date().toLocaleDateString('ar-OM')}</p>
   ${el.outerHTML}
   <script>window.onload=()=>window.print();<\/script></body></html>`);
@@ -94,18 +94,20 @@ function printSection(id, title) {
 }
 
 function caseTypeLabel(t) {
-  var m={'شكوى':'case-complaint','اقتراح':'badge-blue','شكر':'case-thanks'};
-  return `<span class="badge ${m[t]||'badge-gray'}">${t||'—'}</span>`;
+  var m = { 'شكوى': 'case-complaint', 'اقتراح': 'badge-blue', 'شكر': 'case-thanks' };
+  return `<span class="badge ${m[t] || 'badge-gray'}">${t || '—'}</span>`;
 }
 function priorityLabel(p) {
   if (!p) return '<span class="badge badge-gray">—</span>';
-  var m={'منخفضة':'priority-low','متوسطة':'priority-medium','عاجلة':'priority-urgent'};
-  return `<span class="badge ${m[p]||'badge-gray'}">${p}</span>`;
+  var m = { 'منخفضة': 'priority-low', 'متوسطة': 'priority-medium', 'عاجلة': 'priority-urgent' };
+  return `<span class="badge ${m[p] || 'badge-gray'}">${p}</span>`;
 }
 function eventTypeLabel(t) {
-  var c={'حادث سير':'badge-orange','سقوط':'badge-blue','تسمم':'badge-red','اعتداء':'badge-red','غرق':'badge-blue','التماس كهربائي':'badge-orange','في المستشفى':'badge-teal','حرق':'badge-red','إصابة في مكان العمل':'badge-orange'};
-  return `<span class="badge ${c[t]||'badge-gray'}">${t||'—'}</span>`;
+  var c = { 'حادث سير': 'badge-orange', 'سقوط': 'badge-blue', 'تسمم': 'badge-red', 'اعتداء': 'badge-red', 'غرق': 'badge-blue', 'التماس كهربائي': 'badge-orange', 'في المستشفى': 'badge-teal', 'حرق': 'badge-red', 'إصابة في مكان العمل': 'badge-orange' };
+  return `<span class="badge ${c[t] || 'badge-gray'}">${t || '—'}</span>`;
 }
+
+// ── Sidebar HTML builders ──────────────────────────────────────────────────
 
 function sidebarRelations(user) {
   return `<div class="sidebar" id="main-sidebar">
@@ -160,24 +162,45 @@ function sidebarDept(user) {
   </div>`;
 }
 
+// ── Topbar now includes hamburger button ──────────────────────────────────
 function topBar(title, subtitle) {
   return `<div class="topbar">
-    <div class="topbar-title"><h1>${title}</h1>${subtitle?`<p>${subtitle}</p>`:''}</div>
+    <button class="sidebar-toggle-btn" id="topbar-menu-btn" onclick="toggleSidebar()" title="القائمة" aria-label="القائمة">☰</button>
+    <div class="topbar-title"><h1>${title}</h1>${subtitle ? `<p>${subtitle}</p>` : ''}</div>
     <div class="topbar-actions"><span class="topbar-date" id="live-date"></span></div>
   </div>`;
 }
 
+// ── Sidebar toggle: mobile = overlay, desktop = collapse ─────────────────
+function isMobile() { return window.innerWidth <= 768; }
+
 function toggleSidebar() {
   var sidebar = document.getElementById('main-sidebar');
   var main = document.querySelector('.main-content');
-  var btn = document.getElementById('sidebar-toggle-fab');
+  var fabBtn = document.getElementById('sidebar-toggle-fab');
   if (!sidebar) return;
-  var collapsed = sidebar.classList.toggle('collapsed');
-  if (main) main.classList.toggle('sidebar-collapsed', collapsed);
-  if (btn) {
-    btn.textContent = collapsed ? '☰' : '✕';
-    btn.classList.toggle('visible', collapsed);
+
+  if (isMobile()) {
+    // Mobile: toggle .open class; use overlay
+    var isOpen = sidebar.classList.toggle('open');
+    var overlay = document.getElementById('sidebar-overlay');
+    if (overlay) overlay.classList.toggle('show', isOpen);
+  } else {
+    // Desktop: toggle .collapsed class; show/hide FAB
+    var collapsed = sidebar.classList.toggle('collapsed');
+    if (main) main.classList.toggle('sidebar-collapsed', collapsed);
+    if (fabBtn) {
+      fabBtn.textContent = collapsed ? '☰' : '✕';
+      fabBtn.classList.toggle('visible', collapsed);
+    }
   }
+}
+
+function closeSidebarMobile() {
+  var sidebar = document.getElementById('main-sidebar');
+  var overlay = document.getElementById('sidebar-overlay');
+  if (sidebar) sidebar.classList.remove('open');
+  if (overlay) overlay.classList.remove('show');
 }
 
 function setActiveNav() {
@@ -185,26 +208,63 @@ function setActiveNav() {
   document.querySelectorAll('.sidebar-nav a').forEach(a => {
     a.classList.toggle('active', path.endsWith(a.getAttribute('href')));
   });
+  // On mobile, clicking a nav link closes the sidebar
+  document.querySelectorAll('.sidebar-nav a').forEach(a => {
+    a.addEventListener('click', () => { if (isMobile()) closeSidebarMobile(); });
+  });
 }
 
 function startClock() {
   var el = document.getElementById('live-date'); if (!el) return;
-  var tick = () => el.textContent = new Date().toLocaleString('ar-OM',{weekday:'short',year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+  var tick = () => el.textContent = new Date().toLocaleString('ar-OM', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
   tick(); setInterval(tick, 60000);
 }
 
+// Desktop-only FAB (shown when sidebar collapsed)
 function injectToggleFab() {
   var fab = document.createElement('button');
   fab.id = 'sidebar-toggle-fab';
   fab.className = 'sidebar-toggle-btn';
+  fab.style.cssText = 'position:fixed;top:14px;right:12px;z-index:200;display:none;';
   fab.textContent = '☰';
   fab.title = 'إظهار القائمة';
   fab.onclick = toggleSidebar;
   document.body.appendChild(fab);
 }
 
+// Mobile overlay (dark backdrop)
+function injectSidebarOverlay() {
+  var overlay = document.createElement('div');
+  overlay.id = 'sidebar-overlay';
+  overlay.className = 'sidebar-overlay';
+  overlay.onclick = closeSidebarMobile;
+  document.body.appendChild(overlay);
+}
+
+// Handle resize: switching between mobile & desktop modes
+function handleResize() {
+  var sidebar = document.getElementById('main-sidebar');
+  var main = document.querySelector('.main-content');
+  var overlay = document.getElementById('sidebar-overlay');
+  var fab = document.getElementById('sidebar-toggle-fab');
+  if (!sidebar) return;
+
+  if (isMobile()) {
+    // Ensure desktop states are cleared
+    sidebar.classList.remove('collapsed');
+    if (main) main.classList.remove('sidebar-collapsed');
+    if (fab) fab.style.display = 'none';
+  } else {
+    // Ensure mobile state is cleared
+    sidebar.classList.remove('open');
+    if (overlay) overlay.classList.remove('show');
+  }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   injectToggleFab();
+  injectSidebarOverlay();
   startClock();
   setActiveNav();
+  window.addEventListener('resize', handleResize);
 });
