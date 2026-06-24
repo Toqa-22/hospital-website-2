@@ -7,7 +7,6 @@
   <title>البحث والتقارير</title>
   <link rel="stylesheet" href="../../css/style.css">
   <style>
-    /* ── Report header banner ── */
     .rpt-header {
       background: var(--primary-dark);
       color: #fff;
@@ -31,7 +30,6 @@
       margin-left: .35rem;
     }
 
-    /* ── Summary stats row ── */
     .rpt-stats {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
@@ -60,15 +58,12 @@
       margin-top: .25rem;
     }
 
-    /* ── breakdown sub-tables side by side ── */
     .rpt-breakdowns {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
       gap: 1rem;
       margin-bottom: 1rem;
     }
-
-    .rpt-breakdown {}
 
     .rpt-breakdown .bd-title {
       font-size: .8rem;
@@ -125,7 +120,7 @@
             <div id="ev-rpt" style="display:none;margin-top:1.5rem">
               <div class="flex justify-between items-center mb-2">
                 <strong style="color:var(--primary-dark)">نتائج تقرير الأحداث</strong>
-                <button class="btn btn-ghost btn-sm" onclick="printEvReport()">🖨️طباعة التقرير</button>
+                <button class="btn btn-ghost btn-sm" onclick="printEvReport()">🖨️ طباعة التقرير</button>
               </div>
               <div class="table-wrapper">
                 <table id="ev-rpt-tbl">
@@ -181,8 +176,6 @@
         <div class="card">
           <div class="card-header"><span class="card-title">📋 تقرير الملاحظات</span></div>
           <div class="card-body">
-
-            <!-- Filters -->
             <div class="form-grid">
               <div class="form-group">
                 <label class="form-label">نوع الحالة</label>
@@ -237,24 +230,14 @@
               </div>
             </div>
 
-            <!-- ── Report output ── -->
             <div id="fb-rpt" style="display:none;margin-top:1.75rem">
-
-              <!-- Top action bar -->
               <div class="flex justify-between items-center mb-2" style="flex-wrap:wrap;gap:.5rem">
                 <strong style="color:var(--primary-dark);font-size:1rem">📋 ملخص تقرير الملاحظات</strong>
                 <button class="btn btn-ghost btn-sm" onclick="printFbReport()">🖨️ طباعة التقرير</button>
               </div>
-
-              <!-- Header banner: date range + applied filters -->
               <div class="rpt-header" id="fb-rpt-header"></div>
-
-              <!-- KPI stats row -->
               <div class="rpt-stats" id="fb-rpt-stats"></div>
-
-              <!-- Breakdowns grid -->
               <div class="rpt-breakdowns" id="fb-rpt-breakdowns"></div>
-
             </div>
 
             <div class="divider"></div>
@@ -286,7 +269,6 @@
                 </tbody>
               </table>
             </div>
-
           </div>
         </div>
 
@@ -326,7 +308,6 @@
       return new Date(iso).toLocaleDateString('ar-OM', { year: 'numeric', month: 'long', day: 'numeric' });
     }
 
-    // ── Helpers for count breakdowns ─────────────────────────────────────
     function countBy(arr, key) {
       const out = {};
       arr.forEach(r => { const k = r[key] || 'غير محدد'; out[k] = (out[k] || 0) + 1; });
@@ -363,28 +344,23 @@
         list.appendChild(lbl);
       });
     }
-
     function toggleDeptDropdown() {
       const dd = document.getElementById('dept-dropdown');
       dd.style.display = dd.style.display === 'none' ? 'block' : 'none';
     }
-    // Close dropdown when clicking outside
     document.addEventListener('click', e => {
       const btn = document.getElementById('dept-toggle-btn');
       const dd = document.getElementById('dept-dropdown');
       if (dd && btn && !btn.contains(e.target) && !dd.contains(e.target))
         dd.style.display = 'none';
     });
-
     function toggleAllDepts(cb) {
       document.querySelectorAll('.dept-cb').forEach(c => c.checked = cb.checked);
       updateDeptLabel();
     }
-
     function getSelectedDepts() {
       return [...document.querySelectorAll('.dept-cb:checked')].map(c => c.value);
     }
-
     function updateDeptLabel() {
       const sel = getSelectedDepts();
       const allCb = document.getElementById('dept-all-cb');
@@ -397,22 +373,18 @@
     }
 
     // ── Feedback summary report ───────────────────────────────────────────
-    // Keep last fetched data for printing
     let _lastFbData = [], _lastFbFilters = {};
 
     async function fbReport() {
       const caseType = document.getElementById('fbt').value;
-      const depts = getSelectedDepts();   // [] means "all"
+      const depts = getSelectedDepts();
       const priority = document.getElementById('fbp').value;
       const dateFrom = document.getElementById('fbf').value;
       const dateTo = document.getElementById('fbt2').value;
-
       showLoading();
       try {
         let params = `select=*&order=submitted_date.desc`;
         if (caseType) params += `&case_type=eq.${encodeURIComponent(caseType)}`;
-
-        // Multi-dept OR: department=X OR forwarded_depts contains X, for each chosen dept
         if (depts.length > 0) {
           const orParts = depts.flatMap(d => [
             `department.eq.${encodeURIComponent(d)}`,
@@ -420,21 +392,17 @@
           ]).join(',');
           params += `&or=(${orParts})`;
         }
-
         if (priority) params += `&priority=eq.${encodeURIComponent(priority)}`;
         if (dateFrom) params += `&submitted_date=gte.${dateFrom}`;
         if (dateTo) params += `&submitted_date=lte.${dateTo}`;
-
         const res = await fetch(`${SUPABASE_URL}/rest/v1/feedback?${params}`, {
           headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 'Range': '0-9999' }
         });
         const data = await res.json();
         if (!res.ok) throw new Error(JSON.stringify(data));
-
         _lastFbData = data || [];
         _lastFbFilters = { caseType, depts, priority, dateFrom, dateTo };
         renderFbReport(_lastFbData, _lastFbFilters);
-
       } catch (err) { showToast('خطأ', err.message, 'danger'); }
       finally { hideLoading(); }
     }
@@ -445,7 +413,6 @@
       const pending = total - replied;
       const urgent = data.filter(r => r.priority === 'عاجلة').length;
 
-      // ── Header banner ──
       const filterChips = [];
       if (filters.dateFrom || filters.dateTo)
         filterChips.push(`<span class="rh-item">📅 الفترة: <strong>${fmtDateAr(filters.dateFrom)} — ${fmtDateAr(filters.dateTo)}</strong></span>`);
@@ -458,7 +425,6 @@
       filterChips.push(`<span class="rh-item" style="margin-right:auto;opacity:.6;font-size:.75rem">تاريخ إنشاء التقرير: ${new Date().toLocaleDateString('ar-OM')}</span>`);
       document.getElementById('fb-rpt-header').innerHTML = filterChips.join('');
 
-      // ── KPI row ──
       document.getElementById('fb-rpt-stats').innerHTML = `
         <div class="rpt-stat"><div class="rs-val">${total}</div><div class="rs-lbl">إجمالي الملاحظات</div></div>
         <div class="rpt-stat" style="border-color:var(--success)"><div class="rs-val" style="color:var(--success)">${replied}</div><div class="rs-lbl">تم الرد</div></div>
@@ -466,12 +432,9 @@
         <div class="rpt-stat" style="border-color:var(--danger)"><div class="rs-val" style="color:var(--danger)">${urgent}</div><div class="rs-lbl">عاجلة</div></div>
       `;
 
-      // ── Breakdowns ──
       const byType = countBy(data, 'case_type');
       const byPriority = countBy(data, 'priority');
       const byStatus = { 'تم الرد': replied, 'معلق': pending };
-
-      // Count department + forwarded_depts — restrict to selected depts if any chosen
       const selectedDepts = filters.depts && filters.depts.length > 0 ? new Set(filters.depts) : null;
       const byDeptRaw = {};
       data.forEach(r => {
@@ -483,7 +446,6 @@
             byDeptRaw[d] = (byDeptRaw[d] || 0) + 1;
         });
       });
-      // Ensure all selected depts appear even if count=0
       const byDept = selectedDepts
         ? Object.fromEntries([...selectedDepts].map(d => [d, byDeptRaw[d] || 0]))
         : byDeptRaw;
@@ -493,16 +455,14 @@
         breakdownTable('حسب نوع الحالة', byType, total, k => caseTypeLabel(k)) +
         breakdownTable('حسب التصنيف', byPriority, total, k => priorityLabel(k)) +
         breakdownTable('حسب الحالة', byStatus, total, k =>
-          k === 'تم الرد'
-            ? '<span class="badge badge-green">تم الرد</span>'
-            : '<span class="badge badge-orange">معلق</span>') +
+          k === 'تم الرد' ? '<span class="badge badge-green">تم الرد</span>' : '<span class="badge badge-orange">معلق</span>') +
         breakdownTable('حسب القسم', byDept, deptTotal, k => `<span class="text-sm">${k}</span>`);
 
       document.getElementById('fb-rpt').style.display = 'block';
       document.getElementById('fb-rpt').scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
-    // ── Print the summary report ──────────────────────────────────────────
+    // ── Print feedback report ─────────────────────────────────────────────
     function printFbReport() {
       if (!_lastFbData.length && !Object.keys(_lastFbFilters).length) {
         showToast('تنبيه', 'أنشئ التقرير أولاً', 'warning'); return;
@@ -531,18 +491,6 @@
         : byDeptRawP;
       const deptTotal = Object.values(byDept).reduce((a, b) => a + b, 0);
 
-      const tblHtml = (title, counts, customTotal) => {
-        const t = customTotal !== undefined ? customTotal : total;
-        const rows = Object.entries(counts).sort((a, b) => b[1] - a[1])
-          .map(([k, v]) => `<tr><td>${k}</td><td>${v}</td></tr>`).join('');
-        return `<h3>${title}</h3>
-          <table>
-            <thead><tr><th>القيمة</th><th>العدد</th></tr></thead>
-            <tbody>${rows}</tbody>
-            <tfoot><tr><td>الإجمالي</td><td>${t}</td></tr></tfoot>
-          </table>`;
-      };
-
       const deptBannerText = filters.depts && filters.depts.length > 0
         ? (filters.depts.length === 1 ? filters.depts[0] : filters.depts.join(' | '))
         : null;
@@ -554,18 +502,23 @@
         body{font-family:'Segoe UI',Arial,sans-serif;direction:rtl;padding:2rem;font-size:16pt;color:#0F1923}
         .rpt-header{display:flex;align-items:center;gap:1.25rem;margin-bottom:1rem}
         .rpt-header .logo{width:200px;height:200px;object-fit:contain;flex-shrink:0}
+        h1{color:#072A4A;margin:0 0 .15rem;font-size:20pt}
+        h2{color:#072A4A;margin:0 0 .5rem;font-size:18pt;font-weight:600}
+        .gen-date{font-size:12pt;color:#666;margin-bottom:.5rem}
+        .date-range{background:#072A4A;color:#fff;padding:1rem 1.5rem;border-radius:6px;font-size:11pt;margin-bottom:1.5rem;display:block;text-align:center}
         .filters{font-size:13pt;color:#4A5F73;margin-bottom:1.25rem}
         .filters span{margin-left:1rem}
         .kpis{display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:1.5rem}
         .kpi{border:1.5px solid #D5DDE5;border-radius:6px;padding:.65rem 1rem;text-align:center;min-width:100px}
         .kpi .v{font-size:1.5rem;font-weight:700;color:#072A4A}
         .kpi .l{font-size:8.5pt;color:#4A5F73}
-        h3{color:#072A4A;margin:1.25rem 0 .4rem;font-size:14pt;border-bottom:2px solid #072A4A;padding-bottom:.3rem}
-        table{width:100%;border-collapse:collapse;margin-bottom:1.25rem;font-size:15pt}
-        th{background:#072A4A;color:#fff;padding:10px 14px;text-align:right}
-        td{padding:10px 14px;border-bottom:1px solid #eee}
-        tfoot td{background:#072A4A;color:#fff;font-weight:700}
-        .cols{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem}
+        h3{color:#072A4A;margin:1.25rem 0 0;font-size:14pt}
+        table{width:100%;border-collapse:collapse;margin-bottom:1.25rem;font-size:15pt;border:2px solid #072A4A}
+        th{background:#072A4A;color:#fff;padding:10px 14px;text-align:right;border:1px solid #072A4A}
+        td{padding:10px 14px;border:1px solid #D5DDE5}
+        tfoot{display:table-row-group}
+        tfoot td{background:#072A4A;color:#fff;font-weight:700;border:1px solid #072A4A}
+        .cols{display:block;margin-bottom:1rem}
         @media print{body{padding:.5cm}.kpis{page-break-inside:avoid}}
       </style></head><body>
       <div class="rpt-header">
@@ -588,20 +541,44 @@
         <div class="kpi"><div class="v" style="color:#E67E22">${pending}</div><div class="l">معلق</div></div>
         <div class="kpi"><div class="v" style="color:#C0392B">${urgent}</div><div class="l">عاجلة</div></div>
       </div>
-      <div class="cols">
-        ${tblHtml('حسب نوع الحالة', byType)}
-        ${tblHtml('حسب التصنيف', byPri)}
+      <div class="cols" style="margin-bottom:.3rem">
+        <div><h3>حسب نوع الحالة</h3></div>
+        <div><h3>حسب التصنيف</h3></div>
       </div>
       <div class="cols">
-        ${tblHtml('حسب الحالة', { 'تم الرد': replied, 'معلق': pending })}
-        ${tblHtml('حسب القسم', byDept, deptTotal)}
+        <table>
+          <thead><tr><th>القيمة</th><th>العدد</th></tr></thead>
+          <tbody>${Object.entries(byType).sort((a, b) => b[1] - a[1]).map(([k, v]) => `<tr><td>${k}</td><td>${v}</td></tr>`).join('') || '<tr><td colspan="2">لا بيانات</td></tr>'}</tbody>
+          <tfoot><tr><td>الإجمالي</td><td>${total}</td></tr></tfoot>
+        </table>
+        <table>
+          <thead><tr><th>القيمة</th><th>العدد</th></tr></thead>
+          <tbody>${Object.entries(byPri).sort((a, b) => b[1] - a[1]).map(([k, v]) => `<tr><td>${k}</td><td>${v}</td></tr>`).join('') || '<tr><td colspan="2">لا بيانات</td></tr>'}</tbody>
+          <tfoot><tr><td>الإجمالي</td><td>${total}</td></tr></tfoot>
+        </table>
+      </div>
+      <div class="cols" style="margin-bottom:.3rem;margin-top:1rem">
+        <div><h3>حسب الحالة</h3></div>
+        <div><h3>حسب القسم</h3></div>
+      </div>
+      <div class="cols">
+        <table>
+          <thead><tr><th>القيمة</th><th>العدد</th></tr></thead>
+          <tbody>${Object.entries({ 'تم الرد': replied, 'معلق': pending }).map(([k, v]) => `<tr><td>${k}</td><td>${v}</td></tr>`).join('')}</tbody>
+          <tfoot><tr><td>الإجمالي</td><td>${total}</td></tr></tfoot>
+        </table>
+        <table>
+          <thead><tr><th>القيمة</th><th>العدد</th></tr></thead>
+          <tbody>${Object.entries(byDept).sort((a, b) => b[1] - a[1]).map(([k, v]) => `<tr><td>${k}</td><td>${v}</td></tr>`).join('') || '<tr><td colspan="2">لا بيانات</td></tr>'}</tbody>
+          <tfoot><tr><td>الإجمالي</td><td>${deptTotal}</td></tr></tfoot>
+        </table>
       </div>
       <script>window.onload=()=>window.print();<\/script>
       </body></html>`);
       w.document.close();
     }
 
-    // ── Logo loader (converts logo.png → base64 once for print use) ─────────
+    // ── Logo loader ───────────────────────────────────────────────────────
     let _logoBase64 = '';
     (function loadLogo() {
       const img = new Image();
@@ -613,14 +590,8 @@
         _logoBase64 = canvas.toDataURL('image/png');
       };
       img.onerror = function () { _logoBase64 = ''; };
-      // Adjust path relative to pages/relations/
       img.src = '../../images/logo.png';
     })();
-
-    function logoTag(size) {
-      if (!_logoBase64) return '';
-      return `<img src="${_logoBase64}" style="width:${size || 70}px;height:auto;object-fit:contain">`;
-    }
 
     // ── Daily events report ───────────────────────────────────────────────
     const ETYPES = ['حادث سير', 'حادث سقوط', 'حادث تسمم', 'حادث اعتداء', 'حادث غرق', 'حادث التماس كهربائي', 'حادث في المستشفى', 'حادث حرق', 'إصابة في مكان العمل'];
@@ -640,7 +611,6 @@
         const allTypes = [...new Set([...ETYPES, ...Object.keys(cnt)])];
         allTypes.forEach(k => { if (cnt[k] === undefined) cnt[k] = 0; });
         const total = Object.values(cnt).reduce((a, b) => a + b, 0);
-        // Store for printing
         _evDateFrom = f; _evDateTo = t; _evCnt = cnt; _evTotal = total;
         document.getElementById('ev-rpt-body').innerHTML = allTypes
           .filter(k => k !== 'غير محدد' || cnt[k] > 0)
@@ -664,12 +634,15 @@
         body{font-family:'Segoe UI',Arial,sans-serif;direction:rtl;padding:2rem;font-size:16pt;color:#0F1923}
         .rpt-header{display:flex;align-items:center;gap:1.25rem;margin-bottom:1rem}
         .rpt-header .logo{width:200px;height:200px;object-fit:contain;flex-shrink:0}
-        .date-range{background:#072A4A;color:#fff;padding:.5rem .9rem;border-radius:6px;font-size:11pt;margin-bottom:1.5rem;display:block;text-align:center}
-        table{width:100%;border-collapse:collapse;margin-top:1rem;font-size:15pt}
-        th{background:#072A4A;color:#fff;padding:10px 14px;text-align:right}
-        td{padding:10px 14px;border-bottom:1px solid #eee}
-        tfoot td{background:#072A4A;color:#fff;font-weight:700}
+        h1{color:#072A4A;margin:0 0 .15rem;font-size:20pt}
+        h2{color:#072A4A;margin:0 0 .5rem;font-size:18pt;font-weight:600}
         .gen-date{font-size:8.5pt;color:#666;margin-bottom:.5rem}
+        .date-range{background:#072A4A;color:#fff;padding:.5rem .9rem;border-radius:6px;font-size:11pt;margin-bottom:1.5rem;display:block;text-align:center}
+        table{width:100%;border-collapse:collapse;margin-top:1rem;font-size:15pt;border:2px solid #072A4A}
+        th{background:#072A4A;color:#fff;padding:10px 14px;text-align:right;border:1px solid #072A4A}
+        td{padding:10px 14px;border:1px solid #D5DDE5}
+        tfoot{display:table-row-group}
+        tfoot td{background:#072A4A;color:#fff;font-weight:700;border:1px solid #072A4A}
         @media print{body{padding:.5cm}}
       </style></head><body>
       <div class="rpt-header">
