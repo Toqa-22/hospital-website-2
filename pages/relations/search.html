@@ -125,7 +125,7 @@
             <div id="ev-rpt" style="display:none;margin-top:1.5rem">
               <div class="flex justify-between items-center mb-2">
                 <strong style="color:var(--primary-dark)">نتائج تقرير الأحداث</strong>
-                <button class="btn btn-ghost btn-sm" onclick="printSection('ev-rpt-tbl','تقرير الأحداث')">🖨️</button>
+                <button class="btn btn-ghost btn-sm" onclick="printEvReport()">🖨️طباعة التقرير</button>
               </div>
               <div class="table-wrapper">
                 <table id="ev-rpt-tbl">
@@ -552,15 +552,19 @@
       <title>تقرير الملاحظات</title>
       <style>
         body{font-family:'Segoe UI',Arial,sans-serif;direction:rtl;padding:2rem;font-size:11pt;color:#0F1923}
-        h1{color:#072A4A;margin-bottom:.25rem;font-size:15pt}
-        .sub{color:#666;font-size:9pt;margin-bottom:1.5rem}
-        .banner{background:#072A4A;color:#fff;padding:.8rem 1rem;border-radius:6px;margin-bottom:1.25rem;font-size:10pt}
-        .banner span{margin-left:1.5rem}
+        .rpt-header{text-align:center;margin-bottom:1rem}
+        .rpt-header .logo{width:100px;height:100px;object-fit:contain;display:block;margin:0 auto .6rem}
+        h1{color:#072A4A;margin:0 0 .15rem;font-size:14pt}
+        h2{color:#072A4A;margin:0 0 .5rem;font-size:13pt;font-weight:600}
+        .gen-date{font-size:8.5pt;color:#666;margin-bottom:.5rem}
+        .date-range{background:#072A4A;color:#fff;padding:.6rem 1rem;border-radius:6px;font-size:10pt;margin-bottom:1.25rem;display:inline-block}
+        .filters{font-size:9pt;color:#4A5F73;margin-bottom:1.25rem}
+        .filters span{margin-left:1rem}
         .kpis{display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:1.5rem}
         .kpi{border:1.5px solid #D5DDE5;border-radius:6px;padding:.65rem 1rem;text-align:center;min-width:100px}
         .kpi .v{font-size:1.5rem;font-weight:700;color:#072A4A}
         .kpi .l{font-size:8.5pt;color:#4A5F73}
-        h3{color:#072A4A;margin:.1.25rem 0 .4rem;font-size:11pt;border-bottom:2px solid #072A4A;padding-bottom:.3rem}
+        h3{color:#072A4A;margin:1.25rem 0 .4rem;font-size:11pt;border-bottom:2px solid #072A4A;padding-bottom:.3rem}
         table{width:100%;border-collapse:collapse;margin-bottom:1.25rem;font-size:10pt}
         th{background:#072A4A;color:#fff;padding:6px 9px;text-align:right}
         td{padding:6px 9px;border-bottom:1px solid #eee}
@@ -568,14 +572,18 @@
         .cols{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem}
         @media print{body{padding:.5cm}.kpis{page-break-inside:avoid}}
       </style></head><body>
-      <h1>🏥 مستشفى إبراء — تقرير الملاحظات</h1>
-      <p class="sub">تاريخ الإنشاء: ${new Date().toLocaleDateString('ar-OM')}</p>
-      <div class="banner">
-        ${filters.dateFrom || filters.dateTo ? `<span>📅 الفترة: ${fmtDateAr(filters.dateFrom)} — ${fmtDateAr(filters.dateTo)}</span>` : '<span>📅 جميع التواريخ</span>'}
-        ${filters.caseType ? `<span>🗂 نوع الحالة: ${filters.caseType}</span>` : ''}
-        ${deptBannerText ? `<span>🏢 القسم / الإحالة: ${deptBannerText}</span>` : ''}
-        ${filters.priority ? `<span>🎯 التصنيف: ${filters.priority}</span>` : ''}
+      <div class="rpt-header">
+        ${_logoBase64 ? `<img src="${_logoBase64}" class="logo">` : ''}
+        <h1>مستشفى إبراء — قسم العلاقات العامة والإعلام</h1>
+        <h2>تقرير الشكاوى والاقتراحات</h2>
+        <p class="gen-date">تاريخ الإنشاء: ${new Date().toLocaleDateString('ar-OM')}</p>
       </div>
+      <div class="date-range">📅 الفترة: ${filters.dateFrom || filters.dateTo ? `${fmtDateAr(filters.dateFrom)} — ${fmtDateAr(filters.dateTo)}` : 'جميع التواريخ'}</div>
+      ${(filters.caseType || deptBannerText || filters.priority) ? `<div class="filters">
+        ${filters.caseType ? `<span>🗂 نوع الحالة: <b>${filters.caseType}</b></span>` : ''}
+        ${deptBannerText ? `<span>🏢 القسم / الإحالة: <b>${deptBannerText}</b></span>` : ''}
+        ${filters.priority ? `<span>🎯 التصنيف: <b>${filters.priority}</b></span>` : ''}
+      </div>` : ''}
       <div class="kpis">
         <div class="kpi"><div class="v">${total}</div><div class="l">إجمالي الملاحظات</div></div>
         <div class="kpi"><div class="v" style="color:#1A7F54">${replied}</div><div class="l">تم الرد</div></div>
@@ -595,8 +603,30 @@
       w.document.close();
     }
 
-    // ── Daily events report (unchanged) ──────────────────────────────────
+    // ── Logo loader (converts logo.png → base64 once for print use) ─────────
+    let _logoBase64 = '';
+    (function loadLogo() {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = function () {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width; canvas.height = img.height;
+        canvas.getContext('2d').drawImage(img, 0, 0);
+        _logoBase64 = canvas.toDataURL('image/png');
+      };
+      img.onerror = function () { _logoBase64 = ''; };
+      // Adjust path relative to pages/relations/
+      img.src = '../../images/logo.png';
+    })();
+
+    function logoTag(size) {
+      if (!_logoBase64) return '';
+      return `<img src="${_logoBase64}" style="width:${size || 70}px;height:auto;object-fit:contain">`;
+    }
+
+    // ── Daily events report ───────────────────────────────────────────────
     const ETYPES = ['حادث سير', 'حادث سقوط', 'حادث تسمم', 'حادث اعتداء', 'حادث غرق', 'حادث التماس كهربائي', 'حادث في المستشفى', 'حادث حرق', 'إصابة في مكان العمل'];
+    let _evDateFrom = '', _evDateTo = '', _evCnt = {}, _evTotal = 0;
 
     async function evReport() {
       const f = document.getElementById('ef').value, t = document.getElementById('et').value;
@@ -612,6 +642,8 @@
         const allTypes = [...new Set([...ETYPES, ...Object.keys(cnt)])];
         allTypes.forEach(k => { if (cnt[k] === undefined) cnt[k] = 0; });
         const total = Object.values(cnt).reduce((a, b) => a + b, 0);
+        // Store for printing
+        _evDateFrom = f; _evDateTo = t; _evCnt = cnt; _evTotal = total;
         document.getElementById('ev-rpt-body').innerHTML = allTypes
           .filter(k => k !== 'غير محدد' || cnt[k] > 0)
           .map(k => `<tr><td>${k}</td><td><strong>${cnt[k]}</strong></td><td>${total > 0 ? ((cnt[k] / total) * 100).toFixed(1) + '%' : '0%'}</td></tr>`)
@@ -620,6 +652,45 @@
         document.getElementById('ev-rpt').style.display = 'block';
       } catch (err) { showToast('خطأ', err.message, 'danger'); }
       finally { hideLoading(); }
+    }
+
+    function printEvReport() {
+      if (!_evDateFrom) { showToast('تنبيه', 'أنشئ التقرير أولاً', 'warning'); return; }
+      const rows = [...new Set([...ETYPES, ...Object.keys(_evCnt)])]
+        .filter(k => k !== 'غير محدد' || _evCnt[k] > 0)
+        .map(k => `<tr><td>${k}</td><td>${_evCnt[k] || 0}</td></tr>`).join('');
+      const w = window.open('', '_blank', 'width=700,height=650');
+      w.document.write(`<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8">
+      <title>تقرير الإصابات</title>
+      <style>
+        body{font-family:'Segoe UI',Arial,sans-serif;direction:rtl;padding:2rem;font-size:11pt;color:#0F1923}
+        .rpt-header{text-align:center;margin-bottom:1rem}
+        .rpt-header .logo{width:100px;height:100px;object-fit:contain;display:block;margin:0 auto .6rem}
+        h1{color:#072A4A;margin:0 0 .15rem;font-size:14pt}
+        h2{color:#072A4A;margin:0 0 .5rem;font-size:13pt;font-weight:600}
+        .date-range{background:#072A4A;color:#fff;padding:.6rem 1rem;border-radius:6px;font-size:10pt;margin-bottom:1.5rem;display:inline-block}
+        table{width:100%;border-collapse:collapse;margin-top:1rem;font-size:10.5pt}
+        th{background:#072A4A;color:#fff;padding:7px 10px;text-align:right}
+        td{padding:7px 10px;border-bottom:1px solid #eee}
+        tfoot td{background:#EEF2F6;font-weight:700}
+        .gen-date{font-size:8.5pt;color:#666;margin-bottom:.5rem}
+        @media print{body{padding:.5cm}}
+      </style></head><body>
+      <div class="rpt-header">
+        ${_logoBase64 ? `<img src="${_logoBase64}" class="logo">` : ''}
+        <h1>مستشفى إبراء — قسم العلاقات العامة والإعلام</h1>
+        <h2>تقرير الإصابات</h2>
+        <p class="gen-date">تاريخ الإنشاء: ${new Date().toLocaleDateString('ar-OM')}</p>
+      </div>
+      <div class="date-range">📅 الفترة: ${fmtDateAr(_evDateFrom)} — ${fmtDateAr(_evDateTo)}</div>
+      <table>
+        <thead><tr><th>نوع الحالة</th><th>العدد</th></tr></thead>
+        <tbody>${rows}</tbody>
+        <tfoot><tr><td>الإجمالي</td><td>${_evTotal}</td></tr></tfoot>
+      </table>
+      <script>window.onload=()=>window.print();<\/script>
+      </body></html>`);
+      w.document.close();
     }
 
     async function loadEvAll() {
