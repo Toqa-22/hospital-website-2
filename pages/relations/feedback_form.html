@@ -1,92 +1,115 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
+
 <head>
-  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>نموذج الملاحظات</title>
   <link rel="stylesheet" href="../../css/style.css">
 </head>
+
 <body>
-<div class="app-layout">
-  <div id="sidebar-container"></div>
-  <div class="main-content">
-    <div id="topbar-container"></div>
-    <div class="page-content">
-      <div class="card">
-        <div class="card-header"><span class="card-title">📝 نموذج  شكوى / اقتراح / شكر</span></div>
-        <div class="card-body">
-          <div id="form-alert"></div>
-          <form id="ff" onsubmit="save(event)">
-            <div class="form-grid">
-              <div class="form-group"><label class="form-label">اسم المريض <span class="required">*</span></label><input type="text" class="form-control" id="patient_name" required></div>
-              <div class="form-group"><label class="form-label">رقم الملف <span class="required">*</span></label><input type="text" class="form-control" id="file_number" required></div>
-              <div class="form-group"><label class="form-label">اسم المبلغ / المشتكي <span class="required">*</span></label><input type="text" class="form-control" id="reporter_name" required></div>
-              <div class="form-group"><label class="form-label">رقم الهاتف</label><input type="tel" class="form-control" id="phone" dir="ltr"></div>
-              <div class="form-group">
-                <label class="form-label">القسم المعني <span class="required">*</span></label>
-                <select class="form-control" id="dept" required><option value="">-- اختر القسم --</option></select>
+  <div class="app-layout">
+    <div id="sidebar-container"></div>
+    <div class="main-content">
+      <div id="topbar-container"></div>
+      <div class="page-content">
+        <div class="card">
+          <div class="card-header"><span class="card-title">📝 نموذج شكوى / اقتراح / شكر</span></div>
+          <div class="card-body">
+            <div id="form-alert"></div>
+            <form id="ff" onsubmit="save(event)">
+              <div class="form-grid">
+                <div class="form-group"><label class="form-label">اسم المريض <span
+                      class="required">*</span></label><input type="text" class="form-control" id="patient_name"
+                    required></div>
+                <div class="form-group"><label class="form-label">رقم الملف <span
+                      class="required">*</span></label><input type="text" class="form-control" id="file_number"
+                    required></div>
+                <div class="form-group"><label class="form-label">اسم المبلغ / المشتكي <span
+                      class="required">*</span></label><input type="text" class="form-control" id="reporter_name"
+                    required></div>
+                <div class="form-group"><label class="form-label">رقم الهاتف<span
+                      class="required">*</span></label><input type="tel"
+                    class="form-control" id="phone" dir="ltr"></div>
+                <div class="form-group">
+                  <label class="form-label">القسم المعني <span class="required">*</span></label>
+                  <select class="form-control" id="dept" required>
+                    <option value="">-- اختر القسم --</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">نوع الحالة <span class="required">*</span></label>
+                  <select class="form-control" id="case_type" required>
+                    <option value="">-- اختر --</option>
+                    <option>شكر</option>
+                    <option>اقتراح</option>
+                    <option>شكوى</option>
+                  </select>
+                </div>
+                <div class="form-group full"><label class="form-label">الوصف / التفاصيل <span
+                      class="required">*</span></label><textarea class="form-control" id="desc" rows="4"
+                    required></textarea></div>
               </div>
-              <div class="form-group">
-                <label class="form-label">نوع الحالة <span class="required">*</span></label>
-                <select class="form-control" id="case_type" required>
-                  <option value="">-- اختر --</option><option>شكر</option><option>اقتراح</option><option>شكوى</option>
-                </select>
+              <div class="form-actions">
+                <button type="submit" class="btn btn-primary btn-lg" id="save-btn">💾 حفظ الملاحظة</button>
+                <button type="button" class="btn btn-ghost" onclick="reset()">↺ إعادة تعيين</button>
               </div>
-              <div class="form-group full"><label class="form-label">الوصف / التفاصيل <span class="required">*</span></label><textarea class="form-control" id="desc" rows="4" required></textarea></div>
-            </div>
-            <div class="form-actions">
-              <button type="submit" class="btn btn-primary btn-lg" id="save-btn">💾 حفظ الملاحظة</button>
-              <button type="button" class="btn btn-ghost" onclick="reset()">↺ إعادة تعيين</button>
-            </div>
-          </form>
+            </form>
+          </div>
         </div>
       </div>
     </div>
   </div>
-</div>
-<div id="loading-overlay" class="loading-overlay"><div class="spinner"></div></div>
-<div id="toast-container"></div>
+  <div id="loading-overlay" class="loading-overlay">
+    <div class="spinner"></div>
+  </div>
+  <div id="toast-container"></div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<script src="../../js/config.js"></script>
-<script src="../../js/main.js"></script>
-<script>
-  const user = requireAuth();
-  if (user) {
-    document.getElementById('sidebar-container').innerHTML = user.role==='relations' ? sidebarRelations(user) : sidebarDept(user);
-    document.getElementById('topbar-container').innerHTML = topBar('نموذج الملاحظات', 'تسجيل شكوى / اقتراح / شكر');
-    populateDeptSelect(document.getElementById('dept'), '');
-  }
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../../js/config.js"></script>
+  <script src="../../js/main.js"></script>
+  <script>
+    const user = requireAuth();
+    if (user) {
+      document.getElementById('sidebar-container').innerHTML = user.role === 'relations' ? sidebarRelations(user) : sidebarDept(user);
+      document.getElementById('topbar-container').innerHTML = topBar('نموذج الملاحظات', 'تسجيل شكوى / اقتراح / شكر');
+      populateDeptSelect(document.getElementById('dept'), '');
+    }
 
-  function reset() {
-    document.getElementById('ff').reset();
-    populateDeptSelect(document.getElementById('dept'), '');
-  }
+    function reset() {
+      document.getElementById('ff').reset();
+      populateDeptSelect(document.getElementById('dept'), '');
+    }
 
-  async function save(e) {
-    e.preventDefault();
-    const btn = document.getElementById('save-btn');
-    btn.disabled = true; btn.textContent = '⏳ جاري الحفظ...';
-    try {
-      const { error } = await supabase.from('feedback').insert([{
-        patient_name:   document.getElementById('patient_name').value.trim(),
-        file_number:    document.getElementById('file_number').value.trim(),
-        reporter_name:  document.getElementById('reporter_name').value.trim(),
-        phone:          document.getElementById('phone').value.trim(),
-        department:     document.getElementById('dept').value,
-        case_type:      document.getElementById('case_type').value,
-        description:    document.getElementById('desc').value.trim(),
-        submitted_date: todayISO(),
-        replied:        false,
-      }]);
-      if (error) throw error;
-      document.getElementById('form-alert').innerHTML = '<div class="alert alert-success">✅ تم تسجيل الملاحظة بنجاح!</div>';
-      showToast('تم الحفظ', 'تم تسجيل الملاحظة', 'success');
-      reset();
-    } catch(err) {
-      document.getElementById('form-alert').innerHTML = `<div class="alert alert-danger">❌ ${err.message}</div>`;
-      showToast('خطأ', err.message, 'danger');
-    } finally { btn.disabled = false; btn.textContent = '💾 حفظ الملاحظة'; }
-  }
-</script>
+    async function save(e) {
+      e.preventDefault();
+      const btn = document.getElementById('save-btn');
+      btn.disabled = true; btn.textContent = '⏳ جاري الحفظ...';
+      try {
+        const { error } = await supabase.from('feedback').insert([{
+          patient_name: document.getElementById('patient_name').value.trim(),
+          file_number: document.getElementById('file_number').value.trim(),
+          reporter_name: document.getElementById('reporter_name').value.trim(),
+          phone: document.getElementById('phone').value.trim(),
+          department: document.getElementById('dept').value,
+          case_type: document.getElementById('case_type').value,
+          description: document.getElementById('desc').value.trim(),
+          submitted_date: todayISO(),
+          replied: false,
+        }]);
+        if (error) throw error;
+        document.getElementById('form-alert').innerHTML = '<div class="alert alert-success">✅ تم تسجيل الملاحظة بنجاح!</div>';
+        showToast('تم الحفظ', 'تم تسجيل الملاحظة', 'success');
+        reset();
+      } catch (err) {
+        document.getElementById('form-alert').innerHTML = `<div class="alert alert-danger">❌ ${err.message}</div>`;
+        showToast('خطأ', err.message, 'danger');
+      } finally { btn.disabled = false; btn.textContent = '💾 حفظ الملاحظة'; }
+    }
+  </script>
 </body>
+
 </html>
+
+رقم الهاتف
