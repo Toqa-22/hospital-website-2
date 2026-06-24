@@ -4,8 +4,89 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>الشكاوى — القسم</title>
+  <title>إدارة الملاحظات</title>
   <link rel="stylesheet" href="../../css/style.css">
+  <style>
+    .dept-reply-block {
+      border: 1.5px solid var(--neutral-200);
+      border-radius: var(--radius);
+      padding: 1rem;
+      margin-bottom: .75rem;
+      background: var(--neutral-50)
+    }
+    .dept-reply-block .dept-name {
+      font-size: .85rem;font-weight: 700;color: var(--primary-dark);
+      margin-bottom: .5rem;display: flex;align-items: center;gap: .4rem
+    }
+    .dept-reply-block textarea {
+      width: 100%;padding: .6rem .85rem;border: 1.5px solid var(--neutral-200);
+      border-radius: var(--radius);font-size: .88rem;font-family: inherit;
+      resize: vertical;min-height: 70px;direction: rtl;background: #fff
+    }
+    .dept-reply-block textarea:focus {
+      outline: none;border-color: var(--primary-light);
+      box-shadow: 0 0 0 3px rgba(21,96,168,.1)
+    }
+    .dept-reply-block .existing { font-size: .78rem;color: var(--success);margin-top: .3rem }
+    #dept-replies-container:empty::after {
+      content: 'اختر قسماً واحداً على الأقل من القائمة أعلاه';
+      font-size: .83rem;color: var(--neutral-400);display: block;text-align: center;padding: 1rem
+    }
+
+    /* ── Priority guide ─────────────────────────── */
+    .priority-guide {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: .65rem;
+      margin-bottom: 1.1rem;
+    }
+    @media(max-width:560px){ .priority-guide{grid-template-columns:1fr} }
+
+    .pg-card {
+      border-radius: var(--radius);
+      padding: .85rem 1rem;
+      cursor: pointer;
+      border: 2.5px solid transparent;
+      transition: all .2s;
+      position: relative;
+      user-select: none;
+    }
+    .pg-card:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+    .pg-card.selected { border-color: currentColor; box-shadow: 0 0 0 3px rgba(0,0,0,.08); }
+
+    .pg-card.urgent  { background: rgba(192,57,43,.07);  color: var(--danger);  }
+    .pg-card.medium  { background: rgba(230,126,34,.07); color: var(--warning); }
+    .pg-card.low     { background: rgba(26,127,84,.07);  color: var(--success); }
+
+    .pg-card .pg-title {
+      font-size: 1rem; font-weight: 700;
+      display: flex; align-items: center; gap: .4rem; margin-bottom: .4rem;
+    }
+    .pg-card .pg-time {
+      font-size: .8rem; font-weight: 600; opacity: .85; margin-bottom: .35rem;
+    }
+    .pg-card .pg-example {
+      font-size: .75rem; opacity: .75; line-height: 1.5;
+      border-top: 1px solid currentColor; padding-top: .35rem; margin-top: .35rem;
+      opacity: .6;
+    }
+    .pg-card .pg-check {
+      position: absolute; top: .6rem; left: .6rem;
+      width: 18px; height: 18px; border-radius: 50%;
+      background: currentColor; color: #fff;
+      display: none; align-items: center; justify-content: center;
+      font-size: .65rem; font-weight: 900;
+    }
+    .pg-card.selected .pg-check { display: flex; }
+
+    .guide-label {
+      font-size: .78rem; font-weight: 700; color: var(--neutral-600);
+      margin-bottom: .5rem; display: flex; align-items: center; gap: .35rem;
+    }
+    .guide-label::after {
+      content: '';flex:1;height:1px;background:var(--neutral-200)
+    }
+  </style>
 </head>
 
 <body>
@@ -16,36 +97,33 @@
       <div class="page-content">
         <div class="card">
           <div class="card-header">
-            <span class="card-title">📊 الشكاوى والمقترحات الواردة للقسم</span>
-            <div class="flex gap-1">
-              <button class="btn btn-ghost btn-sm" onclick="printSection('dept-tbl','شكاوى القسم')">🖨️</button>
-              <button class="btn btn-accent btn-sm" onclick="load()">↺ تحديث</button>
-            </div>
+            <span class="card-title">📊 إدارة الملاحظات</span>
+            <button class="btn btn-accent btn-sm" onclick="load()">↺ تحديث</button>
           </div>
           <div class="card-body">
             <div class="filter-row">
-              <div class="search-bar" style="flex:1;max-width:280px"><span>🔍</span><input type="text" id="srch"
-                  placeholder="بحث..."></div>
+              <div class="search-bar" style="flex:1;max-width:280px"><span>🔍</span><input type="text" id="srch" placeholder="بحث..."></div>
               <select class="form-control" id="ft" style="width:140px" onchange="doFilter()">
                 <option value="">جميع الأنواع</option>
-                <option>شكوى</option>
-                <option>اقتراح</option>
-                <option>شكر</option>
+                <option>شكوى</option><option>اقتراح</option><option>شكر</option>
               </select>
               <select class="form-control" id="fp" style="width:140px" onchange="doFilter()">
-                <option value="">التصنيف</option>
-                <option>منخفضة</option>
-                <option>متوسطة</option>
-                <option>عاجلة</option>
+                <option value="">جميع التصنيفات</option>
+                <option>منخفضة</option><option>متوسطة</option><option>عاجلة</option>
               </select>
-              <select class="form-control" id="fr" style="width:140px" onchange="doFilter()">
+              <select class="form-control" id="fr" style="width:150px" onchange="doFilter()">
                 <option value="">الكل</option>
                 <option value="no">لم يُرد</option>
                 <option value="yes">تم الرد</option>
               </select>
+              <select class="form-control" id="ff" style="width:150px" onchange="doFilter()">
+                <option value="">الإحالة: الكل</option>
+                <option value="yes">تم الإحالة</option>
+                <option value="no">لم يُحَل</option>
+              </select>
             </div>
             <div class="table-wrapper">
-              <table id="dept-tbl">
+              <table id="fb-tbl">
                 <thead>
                   <tr>
                     <th>التاريخ</th>
@@ -53,106 +131,210 @@
                     <th>رقم الملف</th>
                     <th>المشتكي</th>
                     <th>النوع</th>
+                    <th>القسم</th>
                     <th>التصنيف</th>
-                    <th>التفاصيل</th>
+                    <th>الإحالة</th>
+                    <th>تفاصيل</th>
+                    <th>رد الأقسام</th>
                     <th>الحالة</th>
                     <th>إجراءات</th>
                   </tr>
                 </thead>
-                <tbody id="dept-body"></tbody>
+                <tbody id="fb-body"></tbody>
               </table>
             </div>
-            <div id="cnt" class="text-sm text-muted mt-1"></div>
+            <div id="fb-cnt" class="text-sm text-muted mt-1"></div>
           </div>
         </div>
       </div>
     </div>
   </div>
 
+  <!-- ── Reply / Classify Modal ── -->
   <div class="modal-backdrop" id="modal-reply">
-    <div class="modal">
-      <div class="modal-header"><span class="modal-title">💬 رد القسم</span><button class="modal-close"
-          onclick="document.getElementById('modal-reply').classList.remove('open')">✕</button></div>
+    <div class="modal" style="max-width:720px">
+      <div class="modal-header">
+        <span class="modal-title">✏️ تصنيف وإحالة الملاحظة</span>
+        <button class="modal-close" onclick="closeModal('modal-reply')">✕</button>
+      </div>
       <div class="modal-body">
-        <div id="m-info" class="alert alert-info mb-2"></div>
-        <div class="form-group"><label class="form-label">رد القسم <span class="required">*</span></label><textarea
-            class="form-control" id="m-txt" rows="4" placeholder="اكتب رد قسمك هنا..."></textarea></div>
+
+        <!-- Case info banner -->
+        <p id="m-info" class="text-sm text-muted mb-2"
+          style="background:var(--neutral-100);padding:.75rem;border-radius:var(--radius)"></p>
+
+        <!-- Priority guide cards -->
+        <div class="guide-label">🎯 تصنيف الحالات حسب الأولوية — اختر التصنيف المناسب</div>
+        <div class="priority-guide">
+
+          <div class="pg-card urgent" id="pg-urgent" onclick="selectPriority('عاجلة')">
+            <div class="pg-check">✓</div>
+            <div class="pg-title">🔴 عاجلة</div>
+            <div class="pg-time">⏱ الحل خلال ساعتين إلى 4 ساعات</div>
+            <div class="pg-example">مثال: توقف الخدمة في المؤسسة الصحية</div>
+          </div>
+
+          <div class="pg-card medium" id="pg-medium" onclick="selectPriority('متوسطة')">
+            <div class="pg-check">✓</div>
+            <div class="pg-title">🟡 متوسطة</div>
+            <div class="pg-time">⏱ الحل من 4 إلى 7 ساعات</div>
+            <div class="pg-example">مثال: عطل في أحد الأجهزة يؤدي إلى تعطل الخدمة</div>
+          </div>
+
+          <div class="pg-card low" id="pg-low" onclick="selectPriority('منخفضة')">
+            <div class="pg-check">✓</div>
+            <div class="pg-title">🟢 منخفضة</div>
+            <div class="pg-time">⏱ الحل خلال أسبوع عمل</div>
+            <div class="pg-example">مثال: مهارات التواصل، عدم توافر الدواء</div>
+          </div>
+
+        </div>
+
+        <!-- Hidden select kept in sync with card selection -->
+        <input type="hidden" id="m-pri">
+
+        <!-- Dept forwarding -->
+        <div class="form-group mb-2">
+          <label class="form-label">إحالة إلى أقسام
+            <span style="font-size:.75rem;color:var(--neutral-600)">(سيتمكن القسم من رؤية الملاحظة بعد الإحالة)</span>
+          </label>
+          <div class="dept-checkbox-grid" id="m-depts"></div>
+        </div>
+
+        <!-- Dept reply boxes -->
+        <div class="form-group">
+          <label class="form-label">ردود الأقسام المحالة</label>
+          <div id="dept-replies-container"></div>
+        </div>
+
       </div>
       <div class="modal-footer">
-        <button class="btn btn-ghost"
-          onclick="document.getElementById('modal-reply').classList.remove('open')">إلغاء</button>
-        <button class="btn btn-success" onclick="saveReply()">💾 إرسال</button>
+        <button class="btn btn-ghost" onclick="closeModal('modal-reply')">إلغاء</button>
+        <button class="btn btn-success" onclick="saveReply()">💾 حفظ</button>
       </div>
     </div>
   </div>
 
+  <!-- ── Notes detail modal ── -->
   <div class="modal-backdrop" id="modal-notes">
     <div class="modal" style="max-width:680px">
       <div class="modal-header">
         <span class="modal-title">📄 تفاصيل الملاحظة</span>
         <div class="flex gap-1">
           <button class="btn btn-ghost btn-sm" onclick="printNotes()">🖨️ طباعة</button>
-          <button class="modal-close"
-            onclick="document.getElementById('modal-notes').classList.remove('open')">✕</button>
+          <button class="modal-close" onclick="closeModal('modal-notes')">✕</button>
         </div>
       </div>
       <div class="modal-body" id="notes-body"></div>
-      <div class="modal-footer"><button class="btn btn-ghost"
-          onclick="document.getElementById('modal-notes').classList.remove('open')">إغلاق</button></div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="closeModal('modal-notes')">إغلاق</button>
+      </div>
     </div>
   </div>
 
-  <div id="loading-overlay" class="loading-overlay">
-    <div class="spinner"></div>
-  </div>
+  <div id="loading-overlay" class="loading-overlay"><div class="spinner"></div></div>
   <div id="toast-container"></div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script src="../../js/config.js"></script>
   <script src="../../js/main.js"></script>
   <script>
-    const user = requireAuth();
+    const user = requireAuth('relations');
     let all = [], curId = null, curFb = null;
+
     if (user) {
-      document.getElementById('sidebar-container').innerHTML = sidebarDept(user);
-      document.getElementById('topbar-container').innerHTML = topBar('الشكاوى والاقتراحات', user.deptName);
-      setupTableSearch('srch', 'dept-tbl');
+      document.getElementById('sidebar-container').innerHTML = sidebarRelations(user);
+      document.getElementById('topbar-container').innerHTML = topBar('إدارة الملاحظات', 'متابعة الشكاوى');
+      setupTableSearch('srch', 'fb-tbl');
       load();
     }
 
+    function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+    // ── Priority card selection ───────────────────────────────────────────
+    const PRIORITY_MAP = {
+      'عاجلة':   'pg-urgent',
+      'متوسطة':  'pg-medium',
+      'منخفضة':  'pg-low',
+    };
+
+    function selectPriority(val) {
+      // Clear all
+      document.querySelectorAll('.pg-card').forEach(c => c.classList.remove('selected'));
+      // Highlight chosen
+      const cardId = PRIORITY_MAP[val];
+      if (cardId) document.getElementById(cardId).classList.add('selected');
+      // Sync hidden input
+      document.getElementById('m-pri').value = val;
+    }
+
+    function clearPrioritySelection() {
+      document.querySelectorAll('.pg-card').forEach(c => c.classList.remove('selected'));
+      document.getElementById('m-pri').value = '';
+    }
+
+    // ── Load & render ────────────────────────────────────────────────────
     async function load() {
       showLoading();
       try {
-        const { data, error } = await supabase.from('feedback').select('*')
-          .or(`department.eq.${user.deptName},forwarded_depts.cs.{${user.deptName}}`)
-          .order('submitted_date', { ascending: false });
+        const { data, error } = await supabase.from('feedback').select('*').order('submitted_date', { ascending: false });
         if (error) throw error;
         all = data || []; render(all);
       } catch (err) { showToast('خطأ', err.message, 'danger'); } finally { hideLoading(); }
     }
 
-    function render(rows) {
-      document.getElementById('cnt').textContent = `إجمالي: ${rows.length} ملاحظة`;
-      const tbody = document.getElementById('dept-body');
-      if (!rows.length) { tbody.innerHTML = '<tr><td colspan="9"><div class="empty-state"><div class="empty-icon">📭</div><p>لا توجد ملاحظات</p></div></td></tr>'; return; }
-      tbody.innerHTML = rows.map(fb => `<tr>
-      <td>${formatDate(fb.submitted_date)}</td>
-      <td>${fb.patient_name}</td>
-      <td><code>${fb.file_number}</code></td>
-      <td>${fb.reporter_name}</td>
-      <td>${caseTypeLabel(fb.case_type)}</td>
-      <td>${priorityLabel(fb.priority)}</td>
-      <td><button class="btn btn-ghost btn-sm" onclick="showNotes(${fb.id})">📄 عرض</button></td>
-      <td>${(fb.dept_replies && fb.dept_replies[user.deptName]) ? '<span class="reply-status-yes">✅ تم الرد</span>' : '<span class="reply-status-no">⏳ لم يُرد</span>'}</td>
-      <td><div class="flex gap-1">
-        <button class="btn btn-accent btn-sm" onclick="openReply(${fb.id})">💬 رد</button>
-      </div></td>
-    </tr>`).join('');
+    function getDeptReplies(fb) {
+      try { return typeof fb.dept_replies === 'object' && fb.dept_replies ? fb.dept_replies : {}; } catch { return {}; }
     }
 
+    function render(rows) {
+      document.getElementById('fb-cnt').textContent = `إجمالي: ${rows.length} ملاحظة`;
+      const tbody = document.getElementById('fb-body');
+      if (!rows.length) {
+        tbody.innerHTML = '<tr><td colspan="12"><div class="empty-state"><div class="empty-icon">📭</div><p>لا توجد ملاحظات</p></div></td></tr>';
+        return;
+      }
+      tbody.innerHTML = rows.map(fb => {
+        const deptReplies = getDeptReplies(fb);
+        const repliedCount = Object.keys(deptReplies).length;
+        const fwdCount = (fb.forwarded_depts || []).length;
+        return `<tr>
+          <td>${formatDate(fb.submitted_date)}</td>
+          <td>${fb.patient_name}</td>
+          <td><code>${fb.file_number}</code></td>
+          <td>${fb.reporter_name}</td>
+          <td>${caseTypeLabel(fb.case_type)}</td>
+          <td class="text-sm" style="min-width:160px;word-break:break-word">${fb.department || '—'}</td>
+          <td>${priorityLabel(fb.priority)}</td>
+          <td class="text-sm">
+            ${fwdCount
+              ? fb.forwarded_depts.map(d => `<span class="badge badge-blue" style="margin:1px;font-size:.65rem">${d}</span>`).join('')
+              : '<span class="badge badge-gray">لم يُحَل</span>'}
+          </td>
+          <td><button class="btn btn-ghost btn-sm" onclick="showNotes(${fb.id})">📄</button></td>
+          <td>${fwdCount ? `<span class="text-sm">${repliedCount}/${fwdCount}</span>` : '—'}</td>
+          <td>${fb.replied ? '<span class="reply-status-yes">✅ تم</span>' : '<span class="reply-status-no">⏳ معلق</span>'}</td>
+          <td><div class="flex gap-1">
+            <button class="btn btn-accent btn-sm" onclick="openReply(${fb.id})">✏️ تعديل</button>
+            <button class="btn btn-ghost btn-sm" onclick="printFb(${fb.id})">🖨️</button>
+          </div></td>
+        </tr>`;
+      }).join('');
+    }
+
+    // ── Notes detail modal ───────────────────────────────────────────────
     function showNotes(id) {
       const fb = all.find(f => f.id === id); if (!fb) return;
       curFb = fb;
+      const deptReplies = getDeptReplies(fb);
+      const fwdList = (fb.forwarded_depts || []);
+      let deptRepliesHtml = '—';
+      if (fwdList.length) {
+        deptRepliesHtml = fwdList.map(d => {
+          const r = deptReplies[d];
+          return `<div style="margin-bottom:.5rem"><strong style="font-size:.82rem">${d}:</strong> ${r ? `<span>${r}</span>` : '<span style="color:#8899A8">لم يُرد</span>'}</div>`;
+        }).join('');
+      }
       const rows = [
         ['التاريخ', formatDate(fb.submitted_date)],
         ['المريض', fb.patient_name],
@@ -162,64 +344,144 @@
         ['النوع', caseTypeLabel(fb.case_type)],
         ['التصنيف', priorityLabel(fb.priority)],
         ['القسم', fb.department || '—'],
+        ['الإحالة', fwdList.length ? fwdList.join(' | ') : '—'],
         ['الوصف', `<div style="white-space:pre-wrap">${fb.description || '—'}</div>`],
-        ['رد القسم', (() => { const r = fb.dept_replies && typeof fb.dept_replies === 'object' ? fb.dept_replies[user.deptName] : null; return r ? `<div style="white-space:pre-wrap">${r}</div>` : '<span class="text-muted">لم يُرد بعد</span>'; })()],
+        ['ردود الأقسام', deptRepliesHtml],
       ];
-      document.getElementById('notes-body').innerHTML = `<table style="width:100%;border-collapse:collapse;font-size:.9rem">${rows.map((r, i) => `<tr style="${i % 2 ? 'background:#f7f9fc' : ''}"><td style="padding:10px 8px;font-weight:600;width:35%;vertical-align:top">${r[0]}</td><td style="padding:10px 8px">${r[1]}</td></tr>`).join('')}</table>`;
+      document.getElementById('notes-body').innerHTML = `<table style="width:100%;border-collapse:collapse;font-size:.9rem">${rows.map((r, i) => `<tr style="${i%2?'background:#f7f9fc':''}"><td style="padding:10px 8px;font-weight:600;width:35%;vertical-align:top">${r[0]}</td><td style="padding:10px 8px">${r[1]}</td></tr>`).join('')}</table>`;
       document.getElementById('modal-notes').classList.add('open');
     }
 
     function printNotes() {
       if (!curFb) return;
       const fb = curFb;
-      const deptReply = (fb.dept_replies && typeof fb.dept_replies === 'object' && fb.dept_replies[user.deptName]) ? fb.dept_replies[user.deptName] : '—';
-      const w = window.open('', '_blank', 'width=750,height=650');
+      const deptReplies = getDeptReplies(fb);
+      const fwdList = (fb.forwarded_depts || []);
+      const deptRepliesText = fwdList.length ? fwdList.map(d => `${d}: ${deptReplies[d] || 'لم يُرد'}`).join('\n') : '—';
+      const w = window.open('', '_blank', 'width:750,height:650');
       w.document.write(`<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><title>تفاصيل ملاحظة</title>
-    <style>body{font-family:'Segoe UI',Arial,sans-serif;direction:rtl;padding:2rem;font-size:11pt}
-    h2{color:#0B3D6B;margin-bottom:.5rem}p.sub{color:#666;font-size:9pt;margin-bottom:1.5rem}
-    table{width:100%;border-collapse:collapse}
-    td{padding:9px 10px;border-bottom:1px solid #ddd;font-size:10pt;vertical-align:top}
-    td:first-child{font-weight:700;width:35%;background:#f7f9fc}
-    @media print{body{padding:.5cm}}</style></head><body>
-    <h2>🏥 مستشفى إبراء</h2>
-    <p class="sub">تفاصيل الملاحظة — ${user.deptName} — ${new Date().toLocaleDateString('ar-OM')}</p>
-    <table>
-      ${[['التاريخ', formatDate(fb.submitted_date)], ['المريض', fb.patient_name], ['رقم الملف', fb.file_number], ['المشتكي', fb.reporter_name], ['الهاتف', fb.phone || '—'], ['النوع', fb.case_type], ['التصنيف', fb.priority || '—'], ['القسم', fb.department || '—'], ['الوصف', fb.description || '—'], ['رد القسم', deptReply]].map(r => `<tr><td>${r[0]}</td><td style="white-space:pre-wrap">${r[1]}</td></tr>`).join('')}
-    </table>
-    <script>window.onload=()=>window.print();<\/script></body></html>`);
+      <style>body{font-family:'Segoe UI',Arial,sans-serif;direction:rtl;padding:2rem;font-size:11pt}
+      h2{color:#0B3D6B;margin-bottom:.5rem}p.sub{color:#666;font-size:9pt;margin-bottom:1.5rem}
+      table{width:100%;border-collapse:collapse}
+      td{padding:9px 10px;border-bottom:1px solid #ddd;font-size:10pt;vertical-align:top}
+      td:first-child{font-weight:700;width:35%;background:#f7f9fc}
+      @media print{body{padding:.5cm}}</style></head><body>
+      <h2>🏥 مستشفى إبراء — قسم العلاقات العامة</h2>
+      <p class="sub">تفاصيل الملاحظة — ${new Date().toLocaleDateString('ar-OM')}</p>
+      <table>
+        ${[['التاريخ',formatDate(fb.submitted_date)],['المريض',fb.patient_name],['رقم الملف',fb.file_number],['المشتكي',fb.reporter_name],['الهاتف',fb.phone||'—'],['النوع',fb.case_type],['التصنيف',fb.priority||'—'],['القسم',fb.department||'—'],['الإحالة',fwdList.join(' | ')||'—'],['الوصف',fb.description||'—'],['ردود الأقسام',deptRepliesText]].map(r=>`<tr><td>${r[0]}</td><td style="white-space:pre-wrap">${r[1]}</td></tr>`).join('')}
+      </table>
+      <script>window.onload=()=>window.print();<\/script></body></html>`);
       w.document.close();
     }
 
+    // ── Open reply/classify modal ────────────────────────────────────────
+    function buildDeptReplyBoxes(forwardedDepts, existingReplies) {
+      const container = document.getElementById('dept-replies-container');
+      container.innerHTML = '';
+      forwardedDepts.forEach(dept => {
+        const existing = existingReplies[dept] || '';
+        const div = document.createElement('div');
+        div.className = 'dept-reply-block';
+        div.innerHTML = `
+          <div class="dept-name">🏢 ${dept}</div>
+          <textarea data-dept="${dept}" placeholder="رد قسم ${dept}...">${existing}</textarea>
+          ${existing ? `<div class="existing">✅ تم الرد مسبقاً</div>` : ''}
+        `;
+        container.appendChild(div);
+      });
+    }
+
     function openReply(id) {
-      curId = id; const fb = all.find(f => f.id === id); if (!fb) return;
-      document.getElementById('m-info').innerHTML = `<strong>${fb.patient_name}</strong> | ملف: ${fb.file_number}<br><small>${fb.description}</small>`;
-      document.getElementById('m-txt').value = (fb.dept_replies && typeof fb.dept_replies === 'object' ? fb.dept_replies[user.deptName] : '') || '';
+      curId = id;
+      const fb = all.find(f => f.id === id); if (!fb) return;
+      curFb = fb;
+
+      document.getElementById('m-info').textContent =
+        `${fb.patient_name} | ملف: ${fb.file_number} | ${fb.case_type}`;
+
+      // Set priority cards
+      if (fb.priority) selectPriority(fb.priority);
+      else clearPrioritySelection();
+
+      const preSelected = [...new Set([...(fb.forwarded_depts || []), ...(fb.department ? [fb.department] : [])])];
+      renderDeptCheckboxes('m-depts', preSelected);
+
+      const existingReplies = getDeptReplies(fb);
+      buildDeptReplyBoxes(preSelected, existingReplies);
+
+      document.querySelectorAll('#m-depts input[name="dept_cb"]').forEach(cb => {
+        cb.addEventListener('change', () => {
+          const checked = getCheckedDepts('m-depts');
+          const current = getDeptReplies(curFb);
+          buildDeptReplyBoxes(checked, current);
+        });
+      });
+
       document.getElementById('modal-reply').classList.add('open');
     }
 
+    // ── Save ─────────────────────────────────────────────────────────────
     async function saveReply() {
-      const reply = document.getElementById('m-txt').value.trim();
-      if (!reply) { showToast('تنبيه', 'يرجى كتابة الرد', 'warning'); return; }
+      if (!curId) return;
+      const priority = document.getElementById('m-pri').value;
+      const forwardedDepts = getCheckedDepts('m-depts');
+
+      if (!priority) {
+        showToast('تنبيه', 'يجب اختيار التصنيف أولاً — اضغط على بطاقة الأولوية', 'warning');
+        document.querySelector('.priority-guide').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        return;
+      }
+
+      const deptReplies = {};
+      document.querySelectorAll('#dept-replies-container textarea[data-dept]').forEach(ta => {
+        const val = ta.value.trim();
+        if (val) deptReplies[ta.dataset.dept] = val;
+      });
+
+      const hasAnyReply = Object.keys(deptReplies).length > 0;
+
       try {
-        const fb = all.find(f => f.id === curId);
-        const existing = (fb && fb.dept_replies && typeof fb.dept_replies === 'object') ? fb.dept_replies : {};
-        existing[user.deptName] = reply;
-        const { error } = await supabase.from('feedback').update({ dept_reply: reply, dept_reply_date: new Date().toISOString(), dept_name: user.deptName, dept_replies: existing }).eq('id', curId);
+        const { error } = await supabase.from('feedback').update({
+          priority,
+          forwarded_depts: forwardedDepts,
+          dept_replies: deptReplies,
+          replied: hasAnyReply,
+          reply_date: hasAnyReply ? new Date().toISOString() : null,
+        }).eq('id', curId);
         if (error) throw error;
-        showToast('تم', 'تم إرسال الرد', 'success');
-        document.getElementById('modal-reply').classList.remove('open');
+        showToast('تم', 'تم حفظ التعديلات', 'success');
+        closeModal('modal-reply');
         load();
       } catch (err) { showToast('خطأ', err.message, 'danger'); }
     }
 
+    // ── Filters ──────────────────────────────────────────────────────────
     function doFilter() {
-      const t = document.getElementById('ft').value, p = document.getElementById('fp').value, r = document.getElementById('fr').value;
-      render(all.filter(f => {
-        const myReply = f.dept_replies && typeof f.dept_replies === 'object' ? f.dept_replies[user.deptName] : null;
-        return (!t || f.case_type === t) && (!p || f.priority === p) && (r === '' || (r === 'yes' ? !!myReply : !myReply));
-      }));
+      const t = document.getElementById('ft').value, p = document.getElementById('fp').value;
+      const r = document.getElementById('fr').value, f = document.getElementById('ff').value;
+      render(all.filter(fb =>
+        (!t || fb.case_type === t) &&
+        (!p || fb.priority === p) &&
+        (r === '' || (r === 'yes' ? fb.replied : !fb.replied)) &&
+        (f === '' || (f === 'yes' ? (fb.forwarded_depts||[]).length > 0 : (fb.forwarded_depts||[]).length === 0))
+      ));
+    }
+
+    // ── Print single row ──────────────────────────────────────────────────
+    function printFb(id) {
+      const fb = all.find(f => f.id === id); if (!fb) return;
+      const deptReplies = getDeptReplies(fb);
+      const fwdList = (fb.forwarded_depts || []);
+      const deptRepliesText = fwdList.map(d => `${d}: ${deptReplies[d] || 'لم يُرد'}`).join('\n') || '—';
+      const w = window.open('', '_blank', 'width=700,height=600');
+      w.document.write(`<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><title>ملاحظة</title>
+      <style>body{font-family:Arial;direction:rtl;padding:2rem}h2{color:#0B3D6B}table{width:100%;border-collapse:collapse}td{padding:8px;border-bottom:1px solid #ddd;vertical-align:top}</style></head><body>
+      <h2>🏥 مستشفى إبراء</h2>
+      <table>${[['التاريخ',fb.submitted_date],['المريض',fb.patient_name],['الملف',fb.file_number],['المشتكي',fb.reporter_name],['النوع',fb.case_type],['القسم',fb.department||'—'],['التصنيف',fb.priority||'—'],['الوصف',fb.description],['ردود الأقسام',deptRepliesText]].map(r=>`<tr><td><b>${r[0]}</b></td><td style="white-space:pre-wrap">${r[1]}</td></tr>`).join('')}</table>
+      <script>window.onload=()=>window.print()<\/script></body></html>`);
+      w.document.close();
     }
   </script>
 </body>
-
 </html>
