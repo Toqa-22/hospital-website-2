@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>الرئيسية — العلاقات العامة</title>
+  <link rel="stylesheet" href="../../css/style.css">
+</head>
+<body>
+<div class="app-layout">
+  <div id="sidebar-container"></div>
+  <div class="main-content">
+    <div id="topbar-container"></div>
+    <div class="page-content">
+
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-icon blue">📋</div><div><div class="stat-value" id="s1">—</div><div class="stat-label">أحداث اليوم</div></div></div>
+        <div class="stat-card"><div class="stat-icon orange">⚠️</div><div><div class="stat-value" id="s2">—</div><div class="stat-label">شكاوى معلقة</div></div></div>
+        <div class="stat-card"><div class="stat-icon green">✅</div><div><div class="stat-value" id="s3">—</div><div class="stat-label">تم الرد</div></div></div>
+        <div class="stat-card"><div class="stat-icon teal">💬</div><div><div class="stat-value" id="s4">—</div><div class="stat-label">إجمالي الملاحظات</div></div></div>
+      </div>
+
+      <div class="card mb-2">
+        <div class="card-header"><span class="card-title">⚡ الإجراءات السريعة</span></div>
+        <div class="card-body">
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem">
+            <a href="daily_event.html" class="btn btn-primary btn-lg">📋 تسجيل حدث يومي</a>
+            <a href="feedback_form.html" class="btn btn-accent btn-lg">📝 ملاحظة جديدة</a>
+            <a href="today_event.html" class="btn btn-outline btn-lg">📅 أحداث اليوم</a>
+            <a href="feedback.html" class="btn btn-outline btn-lg">📊 إدارة الملاحظات</a>
+            <a href="search.html" class="btn btn-ghost btn-lg">🔍 البحث والتقارير</a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+<div id="loading-overlay" class="loading-overlay"><div class="spinner"></div></div>
+<div id="toast-container"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="../../js/config.js"></script>
+<script src="../../js/main.js"></script>
+<script>
+  const user = requireAuth('relations');
+  if (user) {
+    document.getElementById('sidebar-container').innerHTML = sidebarRelations(user);
+    document.getElementById('topbar-container').innerHTML = topBar('الرئيسية', 'لوحة التحكم — قسم العلاقات العامة');
+
+    async function load() {
+      try {
+        const [ev, fb] = await Promise.all([
+          supabase.from('daily_events').select('*', {count:'exact'}).eq('event_date', todayISO()),
+          supabase.from('feedback').select('id, replied')
+        ]);
+        document.getElementById('s1').textContent = ev.count ?? 0;
+        const fbs = fb.data || [];
+        document.getElementById('s4').textContent = fbs.length;
+        document.getElementById('s2').textContent = fbs.filter(r => !r.replied).length;
+        document.getElementById('s3').textContent = fbs.filter(r => r.replied).length;
+      } catch(err) { showToast('خطأ', err.message, 'danger'); }
+    }
+    load();
+  }
+</script>
+</body>
+</html>

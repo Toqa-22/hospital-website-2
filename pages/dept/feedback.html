@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>الشكاوى — القسم</title>
+  <link rel="stylesheet" href="../../css/style.css">
+</head>
+<body>
+<div class="app-layout">
+  <div id="sidebar-container"></div>
+  <div class="main-content">
+    <div id="topbar-container"></div>
+    <div class="page-content">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">📊 الشكاوى والمقترحات الواردة للقسم</span>
+          <div class="flex gap-1">
+            <button class="btn btn-ghost btn-sm" onclick="printSection('dept-tbl','شكاوى القسم')">🖨️</button>
+            <button class="btn btn-accent btn-sm" onclick="load()">↺ تحديث</button>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="filter-row">
+            <div class="search-bar" style="flex:1;max-width:280px"><span>🔍</span><input type="text" id="srch" placeholder="بحث..."></div>
+            <select class="form-control" id="ft" style="width:140px" onchange="doFilter()">
+              <option value="">جميع الأنواع</option>
+              <option>شكوى</option>
+              <option>اقتراح</option>
+              <option>شكر</option>
+            </select>
+            <select class="form-control" id="fp" style="width:140px" onchange="doFilter()">
+              <option value="">التصنيف</option>
+              <option>منخفضة</option>
+              <option>متوسطة</option>
+              <option>عاجلة</option>
+            </select>
+            <select class="form-control" id="fr" style="width:140px" onchange="doFilter()">
+              <option value="">الكل</option>
+              <option value="no">لم يُرد</option>
+              <option value="yes">تم الرد</option>
+            </select>
+          </div>
+          <div class="table-wrapper"><table id="dept-tbl">
+            <thead><tr><th>التاريخ</th><th>المريض</th><th>رقم الملف</th><th>المشتكي</th><th>النوع</th><th>التفاصيل</th><th>الحالة</th><th>التصنيف</th><th>إجراءات</th></tr></thead>
+            <tbody id="dept-body"></tbody>
+          </table></div>
+          <div id="cnt" class="text-sm text-muted mt-1"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="modal-reply">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title">💬 رد القسم</span><button class="modal-close" onclick="document.getElementById('modal-reply').classList.remove('open')">✕</button></div>
+    <div class="modal-body">
+      <div id="m-info" class="alert alert-info mb-2"></div>
+      <div class="form-group"><label class="form-label">رد القسم <span class="required">*</span></label><textarea class="form-control" id="m-txt" rows="4" placeholder="اكتب رد قسمك هنا..."></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="document.getElementById('modal-reply').classList.remove('open')">إلغاء</button>
+      <button class="btn btn-success" onclick="saveReply()">💾 إرسال</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="modal-notes">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title">📄 تفاصيل</span><button class="modal-close" onclick="document.getElementById('modal-notes').classList.remove('open')">✕</button></div>
+    <div class="modal-body" id="notes-body"></div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="document.getElementById('modal-notes').classList.remove('open')">إغلاق</button></div>
+  </div>
+</div>
+
+<div id="loading-overlay" class="loading-overlay"><div class="spinner"></div></div>
+<div id="toast-container"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="../../js/config.js"></script>
+<script src="../../js/main.js"></script>
+<script>
+  const user = requireAuth();
+  let all = [], curId = null;
+  if (user) {
+    document.getElementById('sidebar-container').innerHTML = sidebarDept(user);
+    document.getElementById('topbar-container').innerHTML = topBar('الشكاوى والاقتراحات', user.deptName);
+    setupTableSearch('srch','dept-tbl');
+    load();
+  }
+
+  async function load() {
+    showLoading();
+    try {
+      const { data, error } = await supabase.from('feedback').select('*')
+        .or(`department.eq.${user.deptName},forwarded_depts.cs.{${user.deptName}}`)
+        .order('submitted_date',{ascending:false});
+      if (error) throw error;
+      all = data||[]; render(all);
+    } catch(err){showToast('خطأ',err.message,'danger');}finally{hideLoading();}
+  }
+
+  function render(rows) {
+    document.getElementById('cnt').textContent=`إجمالي: ${rows.length} ملاحظة`;
+    const tbody=document.getElementById('dept-body');
+    if(!rows.length){tbody.innerHTML='<tr><td colspan="8"><div class="empty-state"><div class="empty-icon">📭</div><p>لا توجد ملاحظات</p></div></td></tr>';return;}
+    tbody.innerHTML=rows.map(fb=>`<tr>
+      <td>${formatDate(fb.submitted_date)}</td><td>${fb.patient_name}</td>
+      <td><code>${fb.file_number}</code></td><td>${fb.reporter_name}</td>
+      <td>${caseTypeLabel(fb.case_type)}</td><td>${caseTypeLabel(fb.priority)}</td>
+      <td><button class="btn btn-ghost btn-sm" onclick="showNotes(${fb.id})">📄 عرض</button></td>
+      <td>${fb.dept_reply?'<span class="reply-status-yes">✅ تم الرد</span>':'<span class="reply-status-no">⏳ لم يُرد</span>'}</td>
+      <td><div class="flex gap-1">
+        <button class="btn btn-accent btn-sm" onclick="openReply(${fb.id})">💬 رد</button>
+        <button class="btn btn-ghost btn-sm" onclick="printFb(${fb.id})">🖨️</button>
+      </div></td>
+    </tr>`).join('');
+  }
+
+  function showNotes(id) {
+    const fb=all.find(f=>f.id===id);if(!fb)return;
+    const rows=[['المريض',fb.patient_name],['رقم الملف',fb.file_number],['المشتكي',fb.reporter_name],['الهاتف',fb.phone||'—'],['النوع',fb.case_type],['القسم',fb.department],['الوصف',fb.description],['رد العلاقات',fb.relations_reply||'—'],['رد القسم',fb.dept_reply||'—']];
+    document.getElementById('notes-body').innerHTML=`<table style="width:100%;border-collapse:collapse;font-size:.9rem">${rows.map((r,i)=>`<tr ${i%2?'style="background:#f7f9fc"':''}><td style="padding:8px;font-weight:600;width:35%">${r[0]}</td><td style="padding:8px">${r[1]}</td></tr>`).join('')}</table>`;
+    document.getElementById('modal-notes').classList.add('open');
+  }
+
+  function openReply(id) {
+    curId=id;const fb=all.find(f=>f.id===id);if(!fb)return;
+    document.getElementById('m-info').innerHTML=`<strong>${fb.patient_name}</strong> | ملف: ${fb.file_number}<br><small>${fb.description}</small>`;
+    document.getElementById('m-txt').value=fb.dept_reply||'';
+    document.getElementById('modal-reply').classList.add('open');
+  }
+
+  async function saveReply() {
+    const reply=document.getElementById('m-txt').value.trim();
+    if(!reply){showToast('تنبيه','يرجى كتابة الرد','warning');return;}
+    try {
+      const {error}=await supabase.from('feedback').update({dept_reply:reply,dept_reply_date:new Date().toISOString(),dept_name:user.deptName}).eq('id',curId);
+      if(error) throw error;
+      showToast('تم','تم إرسال الرد','success');
+      document.getElementById('modal-reply').classList.remove('open');
+      load();
+    } catch(err){showToast('خطأ',err.message,'danger');}
+  }
+
+  function doFilter() {
+    const t=document.getElementById('ft').value,p=document.getElementById('fp').value,r=document.getElementById('fr').value;
+    render(all.filter(f =>
+        (!t || f.case_type === t) &&
+        (!p || f.priority === p) &&
+        (r === '' || (r === 'yes' ? f.dept_reply : !f.dept_reply))
+      ));  
+  }
+
+  function printFb(id) {
+    const fb=all.find(f=>f.id===id);if(!fb)return;
+    const w=window.open('','_blank','width=700,height=600');
+    w.document.write(`<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><style>body{font-family:Arial;direction:rtl;padding:2rem}h2{color:#0B3D6B}table{width:100%;border-collapse:collapse}td{padding:8px;border-bottom:1px solid #ddd}</style></head><body><h2>🏥 مستشفى إبراء — ${user.deptName}</h2><table>${[['التاريخ',fb.submitted_date],['المريض',fb.patient_name],['الملف',fb.file_number],['المشتكي',fb.reporter_name],['النوع',fb.case_type],['الوصف',fb.description],['رد العلاقات',fb.relations_reply||'—'],['رد القسم',fb.dept_reply||'—']].map(r=>`<tr><td><b>${r[0]}</b></td><td>${r[1]}</td></tr>`).join('')}</table><script>window.onload=()=>window.print()<\/script></body></html>`);
+    w.document.close();
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>أحداث اليوم</title>
+  <link rel="stylesheet" href="../../css/style.css">
+</head>
+
+<body>
+  <div class="app-layout">
+    <div id="sidebar-container"></div>
+    <div class="main-content">
+      <div id="topbar-container"></div>
+      <div class="page-content">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">📅 أحداث اليوم — <span id="today-lbl"></span></span>
+            <div class="flex gap-1">
+              <button class="btn btn-ghost btn-sm" onclick="printSection('ev-table','أحداث اليوم')">🖨️ طباعة</button>
+              <button class="btn btn-accent btn-sm" onclick="load()">↺ تحديث</button>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="filter-row">
+              <div class="search-bar" style="flex:1;max-width:300px"><span>🔍</span><input type="text" id="srch"
+                  placeholder="بحث..."></div>
+              <select class="form-control" id="ft" style="width:180px" onchange="filter()">
+                <option value="">جميع الأنواع</option>
+                <option>حادث سير</option>
+                <option>سقوط</option>
+                <option>تسمم</option>
+                <option>اعتداء</option>
+                <option>غرق</option>
+                <option>التماس كهربائي</option>
+                <option>في المستشفى</option>
+                <option>حرق</option>
+                <option>إصابة في مكان العمل</option>
+              </select>
+              <select class="form-control" id="fs" style="width:140px" onchange="filter()">
+                <option value="">جميع الفترات</option>
+                <option>صباحي</option>
+                <option>مسائي</option>
+                <option>ليلي</option>
+              </select>
+            </div>
+            <div class="table-wrapper">
+              <table id="ev-table">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>الفترة</th>
+                    <th>وقت الإبلاغ</th>
+                    <th>اسم المريض</th>
+                    <th>رقم الملف</th>
+                    <th>رقم الهاتف</th>
+                    <th>اسم الشرطي</th>
+                    <th>نوع الحالة</th>
+                    <th>ملاحظات</th>
+                  </tr>
+                </thead>
+                <tbody id="ev-body">
+                  <tr>
+                    <td colspan="9" class="text-center text-muted" style="padding:2rem">جاري التحميل...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div id="ev-count" class="text-sm text-muted mt-1"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="loading-overlay" class="loading-overlay">
+    <div class="spinner"></div>
+  </div>
+  <div id="toast-container"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../../js/config.js"></script>
+  <script src="../../js/main.js"></script>
+  <script>
+    const user = requireAuth('relations');
+    let all = [];
+    if (user) {
+      document.getElementById('sidebar-container').innerHTML = sidebarRelations(user);
+      document.getElementById('topbar-container').innerHTML = topBar('أحداث اليوم', 'الأحداث المسجلة اليوم');
+      document.getElementById('today-lbl').textContent = new Date().toLocaleDateString('ar-OM', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+      setupTableSearch('srch', 'ev-table');
+      load();
+    }
+    function todayISO() {
+      const d = new Date();
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+
+    async function load() {
+      showLoading();
+      try {
+        const { data, error } = await supabase.from('daily_events').select('*').eq('event_date', todayISO()).order('report_time', { ascending: true });
+        if (error) throw error;
+        all = data || [];
+        render(all);
+      } catch (err) { showToast('خطأ', err.message, 'danger'); } finally { hideLoading(); }
+    }
+    function render(rows) {
+      document.getElementById('ev-count').textContent = `إجمالي: ${rows.length} حدث`;
+      document.getElementById('ev-body').innerHTML = rows.length === 0
+        ? '<tr><td colspan="9"><div class="empty-state"><div class="empty-icon">📭</div><p>لا توجد أحداث اليوم</p></div></td></tr>'
+        : rows.map((e, i) => `<tr><td>${i + 1}</td><td>${e.shift || '—'}</td><td>${formatDateTime(e.report_time)}</td><td>${e.patient_name}</td><td><code>${e.file_number}</code></td><td dir="ltr">${e.phone || '—'}</td><td>${e.officer_name || '—'}</td><td>${eventTypeLabel(e.case_type)}</td><td class="text-sm">${e.notes || '—'}</td></tr>`).join('');
+    }
+    function filter() {
+      const t = document.getElementById('ft').value, s = document.getElementById('fs').value;
+      render(all.filter(e => (!t || e.case_type === t) && (!s || e.shift === s)));
+    }
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>الرئيسية — القسم</title>
+  <link rel="stylesheet" href="../../css/style.css">
+</head>
+<body>
+<div class="app-layout">
+  <div id="sidebar-container"></div>
+  <div class="main-content">
+    <div id="topbar-container"></div>
+    <div class="page-content">
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-icon orange">⚠️</div><div><div class="stat-value" id="s1">—</div><div class="stat-label">شكاوى معلقة</div></div></div>
+        <div class="stat-card"><div class="stat-icon green">✅</div><div><div class="stat-value" id="s2">—</div><div class="stat-label">تم الرد</div></div></div>
+        <div class="stat-card"><div class="stat-icon blue">💬</div><div><div class="stat-value" id="s3">—</div><div class="stat-label">إجمالي</div></div></div>
+      </div>
+      <div class="card mb-2">
+        <div class="card-header"><span class="card-title">⚡ الإجراءات السريعة</span></div>
+        <div class="card-body"><div style="display:flex;gap:1rem;flex-wrap:wrap">
+          <a href="feedback.html" class="btn btn-primary btn-lg">📊 الشكاوي والاقتراحات</a>
+        </div></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">📋 آخر الملاحظات</span><a href="feedback.html" class="btn btn-ghost btn-sm">عرض الكل</a></div>
+        <div class="card-body" style="padding:0">
+          <div class="table-wrapper"><table>
+            <thead><tr><th>التاريخ</th><th>المريض</th><th>النوع</th><th>التصنيف</th><th>الحالة</th></tr></thead>
+            <tbody id="recent"><tr><td colspan="5" class="text-center text-muted" style="padding:2rem">جاري التحميل...</td></tr></tbody>
+          </table></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="loading-overlay" class="loading-overlay"><div class="spinner"></div></div>
+<div id="toast-container"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="../../js/config.js"></script>
+<script src="../../js/main.js"></script>
+<script>
+  const user = requireAuth();
+  if (user) {
+    document.getElementById('sidebar-container').innerHTML = sidebarDept(user);
+    document.getElementById('topbar-container').innerHTML = topBar('الرئيسية', user.deptName);
+    load();
+  }
+  async function load() {
+    try {
+      const { data, error } = await supabase.from('feedback').select('*')
+        .or(`department.eq.${user.deptName},forwarded_depts.cs.{${user.deptName}}`)
+        .order('submitted_date',{ascending:false});
+      if (error) throw error;
+      const rows = data||[];
+      document.getElementById('s3').textContent = rows.length;
+      document.getElementById('s1').textContent = rows.filter(r=>!r.dept_reply).length;
+      document.getElementById('s2').textContent = rows.filter(r=>r.dept_reply).length;
+      const tbody = document.getElementById('recent');
+      tbody.innerHTML = rows.slice(0,8).map(fb=>`<tr><td>${formatDate(fb.submitted_date)}</td><td>${fb.patient_name}</td><td>${caseTypeLabel(fb.case_type)}</td><td>${priorityLabel(fb.priority)}</td><td>${fb.dept_reply?'<span class="reply-status-yes">✅ تم الرد</span>':'<span class="reply-status-no">⏳ معلق</span>'}</td></tr>`).join('')
+        ||'<tr><td colspan="5"><div class="empty-state"><div class="empty-icon">📭</div><p>لا توجد ملاحظات</p></div></td></tr>';
+    } catch(err) { showToast('خطأ',err.message,'danger'); }
+  }
+</script>
+</body>
+</html>

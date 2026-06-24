@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>إدارة الملاحظات</title>
+  <link rel="stylesheet" href="../../css/style.css">
+</head>
+<body>
+<div class="app-layout">
+  <div id="sidebar-container"></div>
+  <div class="main-content">
+    <div id="topbar-container"></div>
+    <div class="page-content">
+      <div class="card">
+        <div class="card-header"><span class="card-title">📊 إدارة الملاحظات</span><button class="btn btn-accent btn-sm" onclick="load()">↺ تحديث</button></div>
+        <div class="card-body">
+          <div class="filter-row">
+            <div class="search-bar" style="flex:1;max-width:280px"><span>🔍</span><input type="text" id="srch" placeholder="بحث..."></div>
+            <select class="form-control" id="ft" style="width:140px" onchange="doFilter()"><option value="">جميع الأنواع</option><option>شكوى</option><option>اقتراح</option><option>شكر</option></select>
+            <select class="form-control" id="fp" style="width:140px" onchange="doFilter()"><option value="">جميع التصنيفات</option><option>منخفضة</option><option>متوسطة</option><option>عاجلة</option></select>
+            <select class="form-control" id="fr" style="width:150px" onchange="doFilter()"><option value="">الكل</option><option value="no">لم يُرد</option><option value="yes">تم الرد</option></select>
+          </div>
+          <div class="table-wrapper"><table id="fb-tbl">
+            <thead><tr><th>التاريخ</th><th>المريض</th><th>رقم الملف</th><th>المشتكي</th><th>النوع</th><th>القسم</th><th>التصنيف</th><th>التحويل</th><th>التفاصيل</th><th>رد القسم</th><th>الحالة</th><th>إجراءات</th></tr></thead>
+            <tbody id="fb-body"></tbody>
+          </table></div>
+          <div id="fb-cnt" class="text-sm text-muted mt-1"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="modal-reply">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title">✏️ رد / تصنيف الملاحظة</span><button class="modal-close" onclick="closeModal('modal-reply')">✕</button></div>
+    <div class="modal-body">
+      <p id="m-info" class="text-sm text-muted mb-2" style="background:var(--neutral-100);padding:.75rem;border-radius:var(--radius)"></p>
+      <div class="form-group mb-2"><label class="form-label">التصنيف</label><select class="form-control" id="m-pri"><option value="">--</option><option>منخفضة</option><option>متوسطة</option><option>عاجلة</option></select></div>
+      <div class="form-group mb-2"><label class="form-label">تحويل لأقسام إضافية</label><div class="dept-checkbox-grid" id="m-depts"></div></div>
+      <div class="form-group"><label class="form-label">رد العلاقات العامة</label><textarea class="form-control" id="m-reply-txt" rows="3"></textarea></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('modal-reply')">إلغاء</button><button class="btn btn-success" onclick="saveReply()">💾 حفظ</button></div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="modal-notes">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title">📄 تفاصيل الملاحظة</span><button class="modal-close" onclick="closeModal('modal-notes')">✕</button></div>
+    <div class="modal-body" id="notes-body"></div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('modal-notes')">إغلاق</button></div>
+  </div>
+</div>
+
+<div id="loading-overlay" class="loading-overlay"><div class="spinner"></div></div>
+<div id="toast-container"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="../../js/config.js"></script>
+<script src="../../js/main.js"></script>
+<script>
+  const user = requireAuth('relations');
+  let all = [], curId = null;
+
+  if (user) {
+    document.getElementById('sidebar-container').innerHTML = sidebarRelations(user);
+    document.getElementById('topbar-container').innerHTML = topBar('إدارة الملاحظات','متابعة الشكاوى');
+    setupTableSearch('srch','fb-tbl');
+    load();
+  }
+
+  function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+  async function load() {
+    showLoading();
+    try {
+      const { data, error } = await supabase.from('feedback').select('*').order('submitted_date',{ascending:false});
+      if (error) throw error;
+      all = data || []; render(all);
+    } catch(err) { showToast('خطأ',err.message,'danger'); } finally { hideLoading(); }
+  }
+
+  function render(rows) {
+    document.getElementById('fb-cnt').textContent = `إجمالي: ${rows.length} ملاحظة`;
+    const tbody = document.getElementById('fb-body');
+    if (!rows.length) { tbody.innerHTML='<tr><td colspan="12"><div class="empty-state"><div class="empty-icon">📭</div><p>لا توجد ملاحظات</p></div></td></tr>'; return; }
+    tbody.innerHTML = rows.map(fb=>`<tr>
+      <td>${formatDate(fb.submitted_date)}</td>
+      <td>${fb.patient_name}</td><td><code>${fb.file_number}</code></td><td>${fb.reporter_name}</td>
+      <td>${caseTypeLabel(fb.case_type)}</td>
+      <td class="text-sm" style="max-width:120px;word-break:break-word">${fb.department||'—'}</td>
+      <td>${priorityLabel(fb.priority)}</td>
+      <td class="text-sm">${(fb.forwarded_depts||[]).length ? fb.forwarded_depts.map(d=>`<span class="badge badge-blue" style="margin:1px;font-size:.65rem">${d}</span>`).join('') : '—'}</td>
+      <td><button class="btn btn-ghost btn-sm" onclick="showNotes(${fb.id})">📄</button></td>
+      <td>${fb.dept_reply ? '<span class="badge badge-green">✅</span>' : '—'}</td>
+      <td>${fb.replied ? '<span class="reply-status-yes">✅ تم</span>' : '<span class="reply-status-no">⏳ معلق</span>'}</td>
+      <td><div class="flex gap-1">
+        <button class="btn btn-accent btn-sm" onclick="openReply(${fb.id})">✏️</button>
+        <button class="btn btn-ghost btn-sm" onclick="printFb(${fb.id})">🖨️</button>
+      </div></td>
+    </tr>`).join('');
+  }
+
+  function showNotes(id) {
+    const fb = all.find(f=>f.id===id); if(!fb) return;
+    const rows = [['المريض',fb.patient_name],['رقم الملف',fb.file_number],['المشتكي',fb.reporter_name],['الهاتف',fb.phone||'—'],['النوع',fb.case_type],['القسم',fb.department],['الوصف',fb.description],['رد العلاقات',fb.relations_reply||'—'],['رد القسم',fb.dept_reply||'—']];
+    document.getElementById('notes-body').innerHTML = `<table style="width:100%;border-collapse:collapse;font-size:.9rem">${rows.map((r,i)=>`<tr ${i%2?'style="background:#f7f9fc"':''}><td style="padding:8px;font-weight:600;width:35%">${r[0]}</td><td style="padding:8px">${r[1]}</td></tr>`).join('')}</table>`;
+    document.getElementById('modal-notes').classList.add('open');
+  }
+
+  function openReply(id) {
+    curId = id; const fb = all.find(f=>f.id===id); if(!fb) return;
+    document.getElementById('m-info').textContent = `${fb.patient_name} | ملف: ${fb.file_number} | ${fb.case_type}`;
+    document.getElementById('m-pri').value = fb.priority||'';
+    document.getElementById('m-reply-txt').value = fb.relations_reply||'';
+    renderDeptCheckboxes('m-depts', fb.forwarded_depts||[]);
+    document.getElementById('modal-reply').classList.add('open');
+  }
+
+  async function saveReply() {
+    if (!curId) return;
+    try {
+      const { error } = await supabase.from('feedback').update({
+        priority:        document.getElementById('m-pri').value,
+        relations_reply: document.getElementById('m-reply-txt').value.trim(),
+        forwarded_depts: getCheckedDepts('m-depts'),
+        replied:         !!document.getElementById('m-reply-txt').value.trim(),
+        reply_date:      new Date().toISOString(),
+      }).eq('id', curId);
+      if (error) throw error;
+      showToast('تم','تم حفظ الرد','success');
+      closeModal('modal-reply');
+      load();
+    } catch(err) { showToast('خطأ',err.message,'danger'); }
+  }
+
+  function doFilter() {
+    const t=document.getElementById('ft').value, p=document.getElementById('fp').value, r=document.getElementById('fr').value;
+    render(all.filter(f=>(!t||f.case_type===t)&&(!p||f.priority===p)&&(r===''||(r==='yes'?f.replied:!f.replied))));
+  }
+
+  function printFb(id) {
+    const fb=all.find(f=>f.id===id); if(!fb) return;
+    const w=window.open('','_blank','width=700,height=600');
+    w.document.write(`<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><title>ملاحظة</title><style>body{font-family:Arial;direction:rtl;padding:2rem}h2{color:#0B3D6B}table{width:100%;border-collapse:collapse}td{padding:8px;border-bottom:1px solid #ddd}</style></head><body><h2>🏥 مستشفى إبراء</h2><table>${[['التاريخ',fb.submitted_date],['المريض',fb.patient_name],['الملف',fb.file_number],['المشتكي',fb.reporter_name],['النوع',fb.case_type],['القسم',fb.department],['التصنيف',fb.priority||'—'],['الوصف',fb.description],['رد العلاقات',fb.relations_reply||'—'],['رد القسم',fb.dept_reply||'—']].map(r=>`<tr><td><b>${r[0]}</b></td><td>${r[1]}</td></tr>`).join('')}</table><script>window.onload=()=>window.print()<\/script></body></html>`);
+    w.document.close();
+  }
+</script>
+</body>
+</html>

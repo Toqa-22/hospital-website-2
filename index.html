@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>مستشفى إبراء — تسجيل الدخول</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .lf {
+      display: flex;
+      flex-direction: column;
+      gap: .4rem;
+      margin-bottom: 1.1rem;
+      text-align: right
+    }
+
+    .lf label {
+      font-size: .83rem;
+      font-weight: 600;
+      color: var(--neutral-700)
+    }
+
+    .lf input {
+      width: 100%;
+      padding: .72rem 1rem;
+      border: 1.5px solid var(--neutral-200);
+      border-radius: var(--radius);
+      font-size: .97rem;
+      background: var(--neutral-50);
+      direction: ltr;
+      text-align: left;
+      font-family: inherit
+    }
+
+    .lf input:focus {
+      outline: none;
+      border-color: var(--primary-light);
+      box-shadow: 0 0 0 3px rgba(21, 96, 168, .12);
+      background: #fff
+    }
+
+    .pw-wrap {
+      position: relative
+    }
+
+    .pw-wrap input {
+      padding-left: 2.5rem
+    }
+
+    .pw-toggle {
+      position: absolute;
+      left: .75rem;
+      top: 50%;
+      transform: translateY(-50%);
+      cursor: pointer;
+      font-size: 1.1rem;
+      color: var(--neutral-400)
+    }
+  </style>
+</head>
+
+<body class="login-page">
+  <div class="login-card">
+    <div class="login-logo">🏥</div>
+    <h1 class="login-title">مستشفى إبراء</h1>
+    <p class="login-subtitle">نظام إدارة العلاقات والأحداث</p>
+    <div class="login-form">
+      <div class="lf">
+        <label>اسم المستخدم</label>
+        <input type="text" id="inp-user" placeholder="مثال: finance" autocomplete="off" spellcheck="false">
+      </div>
+      <div class="lf">
+        <label>كلمة المرور</label>
+        <div class="pw-wrap">
+          <input type="password" id="inp-pass" placeholder="••••••••" autocomplete="off">
+          <span class="pw-toggle" id="pw-eye" onclick="togglePw()">👁</span>
+        </div>
+      </div>
+      <button class="btn btn-primary" id="login-btn" onclick="doLogin()">دخول ←</button>
+      <div class="login-error" id="login-error"></div>
+    </div>
+    <p style="margin-top:2rem;font-size:.75rem;color:var(--neutral-400)">مستشفى إبراء — محافظة الشرقية الجنوبية — سلطنة
+      عُمان</p>
+  </div>
+
+  <script>
+    // ── Supabase config ────────────────────────────────────────────────────
+    const SUPABASE_URL = 'https://arpavayymvzckrytnwcr.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFycGF2YXl5bXZ6Y2tyeXRud2NyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyMjEzMTIsImV4cCI6MjA5Nzc5NzMxMn0.KjnoR6fAWPVHJcuAol_mFbrXabzbY2G2itxrQmjWXBs';
+
+    // ── Login uses native fetch — NO supabase.js needed at all ─────────────
+    // Calls the REST endpoint that Supabase auto-generates for every RPC function.
+    async function callRPC(fn, params) {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${fn}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
+        },
+        body: JSON.stringify(params)
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.message || json.error || 'خطأ في الاتصال');
+      return json; // array of rows
+    }
+
+    async function logSession(userId, username) {
+      try {
+        await fetch(`${SUPABASE_URL}/rest/v1/login_sessions`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+            'Prefer': 'return=minimal'
+          },
+          body: JSON.stringify({ user_id: userId, username })
+        });
+      } catch (e) { }
+    }
+
+    // ── Redirect if already logged in ─────────────────────────────────────
+    try {
+      const u = JSON.parse(sessionStorage.getItem('hospital_user'));
+      if (u && u.username) redirectUser(u);
+    } catch (e) { }
+
+    // ── Enter key ─────────────────────────────────────────────────────────
+    document.getElementById('inp-user').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+    document.getElementById('inp-pass').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+
+    function togglePw() {
+      const inp = document.getElementById('inp-pass');
+      inp.type = inp.type === 'password' ? 'text' : 'password';
+      document.getElementById('pw-eye').textContent = inp.type === 'password' ? '👁' : '🙈';
+    }
+
+    function showErr(msg) {
+      const el = document.getElementById('login-error');
+      el.textContent = msg; el.classList.add('show');
+    }
+
+    async function doLogin() {
+      const username = document.getElementById('inp-user').value.trim().toLowerCase();
+      const password = document.getElementById('inp-pass').value;
+      const errEl = document.getElementById('login-error');
+      const btn = document.getElementById('login-btn');
+
+      errEl.classList.remove('show');
+      if (!username || !password) { showErr('⚠️ يرجى إدخال اسم المستخدم وكلمة المرور.'); return; }
+
+      btn.disabled = true; btn.textContent = '⏳ جاري التحقق...';
+
+      try {
+        const rows = await callRPC('verify_login', { p_username: username, p_password: password });
+
+        if (!rows || rows.length === 0) {
+          showErr('❌ اسم المستخدم أو كلمة المرور غير صحيحة.');
+          document.getElementById('inp-pass').value = ''; return;
+        }
+
+        const row = rows[0];
+        if (!row.is_active) { showErr('🚫 هذا الحساب معطّل.'); return; }
+
+        const user = {
+          id: row.user_id,
+          username: row.username,
+          name: row.full_name,
+          role: row.role,
+          deptName: row.dept_name || '',
+          deptKey: row.dept_code || '',
+          loginTime: new Date().toISOString()
+        };
+
+        sessionStorage.setItem('hospital_user', JSON.stringify(user));
+        logSession(user.id, user.username);
+        redirectUser(user);
+
+      } catch (err) {
+        showErr('❌ ' + err.message);
+      } finally {
+        btn.disabled = false; btn.textContent = 'دخول ←';
+      }
+    }
+
+    function redirectUser(user) {
+      if (user.role === 'relations' || user.role === 'admin')
+        window.location.href = 'pages/relations/home.html';
+      else
+        window.location.href = 'pages/dept/home.html';
+    }
+  </script>
+</body>
+
+</html>

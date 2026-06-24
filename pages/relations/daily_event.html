@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>تسجيل الحدث اليومي</title>
+  <link rel="stylesheet" href="../../css/style.css">
+</head>
+<body>
+<div class="app-layout">
+  <div id="sidebar-container"></div>
+  <div class="main-content">
+    <div id="topbar-container"></div>
+    <div class="page-content">
+      <div class="card">
+        <div class="card-header"><span class="card-title">📋 تسجيل حدث يومي جديد</span></div>
+        <div class="card-body">
+          <div id="form-alert"></div>
+          <form id="event-form" onsubmit="submitForm(event)">
+            <div class="form-grid">
+
+              <div class="form-group">
+                <label class="form-label">الفترة <span class="required">*</span></label>
+                <select class="form-control" id="shift" required>
+                  <option value="">-- اختر الفترة --</option>
+                  <option>صباحي</option><option>مسائي</option><option>ليلي</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">وقت الإبلاغ (التاريخ والوقت) <span class="required">*</span></label>
+                <input type="datetime-local" class="form-control" id="report_time" required>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">اسم المريض <span class="required">*</span></label>
+                <input type="text" class="form-control" id="patient_name" required>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">رقم الملف <span class="required">*</span></label>
+                <input type="text" class="form-control" id="file_number" required>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">رقم الهاتف</label>
+                <input type="tel" class="form-control" id="phone" dir="ltr">
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">اسم الشرطي المتصل</label>
+                <input type="text" class="form-control" id="officer_name">
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">نوع الحالة <span class="required">*</span></label>
+                <select class="form-control" id="case_type" required>
+                  <option value="">-- اختر نوع الحالة --</option>
+                  <option>حادث سير</option>
+                  <option>حادث سقوط</option>
+                  <option>حادث تسمم</option>
+                  <option>حادث اعتداء</option>
+                  <option>حادث غرق</option>
+                  <option>حادث التماس كهربائي</option>
+                  <option>حادث في المستشفى</option>
+                  <option>حادث حرق</option>
+                  <option>إصابة في مكان العمل</option>
+                </select>
+              </div>
+
+              <div class="form-group full">
+                <label class="form-label">ملاحظات</label>
+                <textarea class="form-control" id="notes" rows="3"></textarea>
+              </div>
+
+            </div>
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary btn-lg" id="save-btn">💾 حفظ البيانات</button>
+              <button type="button" class="btn btn-ghost" onclick="resetForm()">↺ إعادة تعيين</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="loading-overlay" class="loading-overlay"><div class="spinner"></div></div>
+<div id="toast-container"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="../../js/config.js"></script>
+<script src="../../js/main.js"></script>
+<script>
+  const user = requireAuth('relations');
+  if (user) {
+    document.getElementById('sidebar-container').innerHTML = sidebarRelations(user);
+    document.getElementById('topbar-container').innerHTML = topBar('تسجيل حدث يومي', 'إضافة حدث جديد');
+    setNow();
+  }
+
+  function setNow() {
+    const now = new Date();
+    const pad = n => String(n).padStart(2,'0');
+    document.getElementById('report_time').value =
+      `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
+  }
+
+  async function submitForm(e) {
+    e.preventDefault();
+    const btn = document.getElementById('save-btn');
+    btn.disabled = true; btn.textContent = '⏳ جاري الحفظ...';
+
+    const dt = document.getElementById('report_time').value; // "2026-06-21T14:30"
+
+    const payload = {
+      shift:        document.getElementById('shift').value,
+      report_time:  dt ? new Date(dt).toISOString() : null,
+      event_date:   dt ? dt.split('T')[0] : todayISO(),
+      patient_name: document.getElementById('patient_name').value.trim(),
+      file_number:  document.getElementById('file_number').value.trim(),
+      phone:        document.getElementById('phone').value.trim(),
+      officer_name: document.getElementById('officer_name').value.trim(),
+      case_type:    document.getElementById('case_type').value,
+      notes:        document.getElementById('notes').value.trim(),
+      recorded_by:  user.name,
+    };
+
+    try {
+      const { error } = await supabase.from('daily_events').insert([payload]);
+      if (error) throw error;
+      document.getElementById('form-alert').innerHTML = '<div class="alert alert-success">✅ تم حفظ البيانات بنجاح!</div>';
+      showToast('تم الحفظ', 'تم تسجيل الحدث', 'success');
+      resetForm();
+    } catch(err) {
+      document.getElementById('form-alert').innerHTML = `<div class="alert alert-danger">❌ ${err.message}</div>`;
+      showToast('خطأ', err.message, 'danger');
+    } finally {
+      btn.disabled = false; btn.textContent = '💾 حفظ البيانات';
+    }
+  }
+
+  function resetForm() {
+    document.getElementById('event-form').reset();
+    setNow();
+  }
+</script>
+</body>
+</html>
