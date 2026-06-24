@@ -1,157 +1,258 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
+
 <head>
-  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>البحث والتقارير</title>
   <link rel="stylesheet" href="../../css/style.css">
 </head>
+
 <body>
-<div class="app-layout">
-  <div id="sidebar-container"></div>
-  <div class="main-content">
-    <div id="topbar-container"></div>
-    <div class="page-content">
+  <div class="app-layout">
+    <div id="sidebar-container"></div>
+    <div class="main-content">
+      <div id="topbar-container"></div>
+      <div class="page-content">
 
-      <div class="card mb-3">
-        <div class="card-header"><span class="card-title">📊 تقرير الأحداث اليومية</span></div>
-        <div class="card-body">
-          <div class="form-grid" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr))">
-            <div class="form-group"><label class="form-label">من تاريخ</label><input type="date" class="form-control" id="ef"></div>
-            <div class="form-group"><label class="form-label">إلى تاريخ</label><input type="date" class="form-control" id="et"></div>
-            <div class="form-group" style="align-self:flex-end"><button class="btn btn-primary" onclick="evReport()">📊 إنشاء</button></div>
-          </div>
-          <div id="ev-rpt" style="display:none;margin-top:1.5rem">
-            <div class="flex justify-between items-center mb-2">
-              <strong style="color:var(--primary-dark)">نتائج تقرير الأحداث</strong>
-              <button class="btn btn-ghost btn-sm" onclick="printSection('ev-rpt-tbl','تقرير الأحداث')">🖨️</button>
+        <div class="card mb-3">
+          <div class="card-header"><span class="card-title">📊 تقرير الأحداث اليومية</span></div>
+          <div class="card-body">
+            <div class="form-grid" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr))">
+              <div class="form-group"><label class="form-label">من تاريخ</label><input type="date" class="form-control"
+                  id="ef"></div>
+              <div class="form-group"><label class="form-label">إلى تاريخ</label><input type="date" class="form-control"
+                  id="et"></div>
+              <div class="form-group" style="align-self:flex-end"><button class="btn btn-primary"
+                  onclick="evReport()">📊 إنشاء</button></div>
             </div>
-            <div class="table-wrapper"><table id="ev-rpt-tbl">
-              <thead><tr><th>نوع الحالة</th><th>العدد</th><th>النسبة</th></tr></thead>
-              <tbody id="ev-rpt-body"></tbody>
-              <tfoot><tr style="background:var(--primary-dark);color:#fff;font-weight:700"><td>الإجمالي</td><td id="ev-total" colspan="2"></td></tr></tfoot>
-            </table></div>
-          </div>
-          <div class="divider"></div>
-          <strong class="text-sm" style="color:var(--primary-dark)">🔍 بحث في الأحداث</strong>
-          <div class="filter-row" style="margin-top:.75rem">
-            <div class="search-bar" style="flex:1;max-width:320px"><span>🔍</span><input type="text" id="ev-srch" placeholder="بحث..."></div>
-            <button class="btn btn-accent btn-sm" onclick="loadEvAll()">تحميل الكل</button>
-          </div>
-          <div class="table-wrapper"><table id="ev-all">
-            <thead><tr><th>التاريخ</th><th>الفترة</th><th>المريض</th><th>رقم الملف</th><th>الهاتف</th><th>الشرطي</th><th>نوع الحالة</th><th>ملاحظات</th></tr></thead>
-            <tbody id="ev-all-body"><tr><td colspan="8" class="text-center text-muted" style="padding:1.5rem">اضغط "تحميل الكل"</td></tr></tbody>
-          </table></div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-header"><span class="card-title">📋 تقرير الملاحظات</span></div>
-        <div class="card-body">
-          <div class="form-grid">
-            <div class="form-group"><label class="form-label">نوع الحالة</label><select class="form-control" id="fbt"><option value="">الكل</option><option>شكر</option><option>اقتراح</option><option>شكوى</option></select></div>
-            <div class="form-group"><label class="form-label">القسم</label><select class="form-control" id="fbd"><option value="">الكل</option></select></div>
-            <div class="form-group"><label class="form-label">التصنيف</label><select class="form-control" id="fbp"><option value="">الكل</option><option>منخفضة</option><option>متوسطة</option><option>عاجلة</option></select></div>
-            <div class="form-group"><label class="form-label">من تاريخ</label><input type="date" class="form-control" id="fbf"></div>
-            <div class="form-group"><label class="form-label">إلى تاريخ</label><input type="date" class="form-control" id="fbt2"></div>
-            <div class="form-group" style="align-self:flex-end"><button class="btn btn-primary" onclick="fbReport()">📊 إنشاء</button></div>
-          </div>
-          <div id="fb-rpt" style="display:none;margin-top:1.5rem">
-            <div class="flex justify-between items-center mb-2">
-              <strong style="color:var(--primary-dark)">نتائج تقرير الملاحظات</strong>
-              <button class="btn btn-ghost btn-sm" onclick="printSection('fb-rpt-tbl','تقرير الملاحظات')">🖨️</button>
+            <div id="ev-rpt" style="display:none;margin-top:1.5rem">
+              <div class="flex justify-between items-center mb-2">
+                <strong style="color:var(--primary-dark)">نتائج تقرير الأحداث</strong>
+                <button class="btn btn-ghost btn-sm" onclick="printSection('ev-rpt-tbl','تقرير الأحداث')">🖨️</button>
+              </div>
+              <div class="table-wrapper">
+                <table id="ev-rpt-tbl">
+                  <thead>
+                    <tr>
+                      <th>نوع الحالة</th>
+                      <th>العدد</th>
+                      <th>النسبة</th>
+                    </tr>
+                  </thead>
+                  <tbody id="ev-rpt-body"></tbody>
+                  <tfoot>
+                    <tr style="background:var(--primary-dark);color:#fff;font-weight:700">
+                      <td>الإجمالي</td>
+                      <td id="ev-total" colspan="2"></td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
             </div>
-            <div class="table-wrapper"><table id="fb-rpt-tbl">
-              <thead><tr><th>التاريخ</th><th>المريض</th><th>الملف</th><th>المشتكي</th><th>القسم</th><th>النوع</th><th>التصنيف</th><th>الحالة</th></tr></thead>
-              <tbody id="fb-rpt-body"></tbody>
-            </table></div>
-            <div id="fb-rpt-total" class="text-sm font-bold mt-1" style="color:var(--primary-dark)"></div>
+            <div class="divider"></div>
+            <strong class="text-sm" style="color:var(--primary-dark)">🔍 بحث في الأحداث</strong>
+            <div class="filter-row" style="margin-top:.75rem">
+              <div class="search-bar" style="flex:1;max-width:320px"><span>🔍</span><input type="text" id="ev-srch"
+                  placeholder="بحث..."></div>
+              <button class="btn btn-accent btn-sm" onclick="loadEvAll()">تحميل الكل</button>
+            </div>
+            <div class="table-wrapper">
+              <table id="ev-all">
+                <thead>
+                  <tr>
+                    <th>التاريخ</th>
+                    <th>الفترة</th>
+                    <th>المريض</th>
+                    <th>رقم الملف</th>
+                    <th>الهاتف</th>
+                    <th>الشرطي</th>
+                    <th>نوع الحالة</th>
+                    <th>ملاحظات</th>
+                  </tr>
+                </thead>
+                <tbody id="ev-all-body">
+                  <tr>
+                    <td colspan="8" class="text-center text-muted" style="padding:1.5rem">اضغط "تحميل الكل"</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
-          <div class="divider"></div>
-          <strong class="text-sm" style="color:var(--primary-dark)">🔍 بحث في الملاحظات</strong>
-          <div class="filter-row" style="margin-top:.75rem">
-            <div class="search-bar" style="flex:1;max-width:320px"><span>🔍</span><input type="text" id="fb-srch" placeholder="بحث..."></div>
-            <button class="btn btn-accent btn-sm" onclick="loadFbAll()">تحميل الكل</button>
-          </div>
-          <div class="table-wrapper"><table id="fb-all">
-            <thead><tr><th>التاريخ</th><th>المريض</th><th>الملف</th><th>المشتكي</th><th>القسم</th><th>النوع</th><th>التصنيف</th><th>الحالة</th></tr></thead>
-            <tbody id="fb-all-body"><tr><td colspan="8" class="text-center text-muted" style="padding:1.5rem">اضغط "تحميل الكل"</td></tr></tbody>
-          </table></div>
         </div>
-      </div>
 
+        <div class="card">
+          <div class="card-header"><span class="card-title">📋 تقرير الملاحظات</span></div>
+          <div class="card-body">
+            <div class="form-grid">
+              <div class="form-group"><label class="form-label">نوع الحالة</label><select class="form-control" id="fbt">
+                  <option value="">الكل</option>
+                  <option>شكر</option>
+                  <option>اقتراح</option>
+                  <option>شكوى</option>
+                </select></div>
+              <div class="form-group"><label class="form-label">القسم</label><select class="form-control" id="fbd">
+                  <option value="">الكل</option>
+                </select></div>
+              <div class="form-group"><label class="form-label">التصنيف</label><select class="form-control" id="fbp">
+                  <option value="">الكل</option>
+                  <option>منخفضة</option>
+                  <option>متوسطة</option>
+                  <option>عاجلة</option>
+                </select></div>
+              <div class="form-group"><label class="form-label">من تاريخ</label><input type="date" class="form-control"
+                  id="fbf"></div>
+              <div class="form-group"><label class="form-label">إلى تاريخ</label><input type="date" class="form-control"
+                  id="fbt2"></div>
+              <div class="form-group" style="align-self:flex-end"><button class="btn btn-primary"
+                  onclick="fbReport()">📊 إنشاء</button></div>
+            </div>
+            <div id="fb-rpt" style="display:none;margin-top:1.5rem">
+              <div class="flex justify-between items-center mb-2">
+                <strong style="color:var(--primary-dark)">نتائج تقرير الملاحظات</strong>
+                <button class="btn btn-ghost btn-sm" onclick="printSection('fb-rpt-tbl','تقرير الملاحظات')">🖨️</button>
+              </div>
+              <div class="table-wrapper">
+                <table id="fb-rpt-tbl">
+                  <thead>
+                    <tr>
+                      <th>التاريخ</th>
+                      <th>المريض</th>
+                      <th>الملف</th>
+                      <th>المشتكي</th>
+                      <th>القسم</th>
+                      <th>النوع</th>
+                      <th>التصنيف</th>
+                      <th>الحالة</th>
+                    </tr>
+                  </thead>
+                  <tbody id="fb-rpt-body"></tbody>
+                </table>
+              </div>
+              <div id="fb-rpt-total" class="text-sm font-bold mt-1" style="color:var(--primary-dark)"></div>
+            </div>
+            <div class="divider"></div>
+            <strong class="text-sm" style="color:var(--primary-dark)">🔍 بحث في الملاحظات</strong>
+            <div class="filter-row" style="margin-top:.75rem">
+              <div class="search-bar" style="flex:1;max-width:320px"><span>🔍</span><input type="text" id="fb-srch"
+                  placeholder="بحث..."></div>
+              <button class="btn btn-accent btn-sm" onclick="loadFbAll()">تحميل الكل</button>
+            </div>
+            <div class="table-wrapper">
+              <table id="fb-all">
+                <thead>
+                  <tr>
+                    <th>التاريخ</th>
+                    <th>المريض</th>
+                    <th>الملف</th>
+                    <th>المشتكي</th>
+                    <th>القسم</th>
+                    <th>النوع</th>
+                    <th>التصنيف</th>
+                    <th>الحالة</th>
+                  </tr>
+                </thead>
+                <tbody id="fb-all-body">
+                  <tr>
+                    <td colspan="8" class="text-center text-muted" style="padding:1.5rem">اضغط "تحميل الكل"</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </div>
     </div>
   </div>
-</div>
-<div id="loading-overlay" class="loading-overlay"><div class="spinner"></div></div>
-<div id="toast-container"></div>
+  <div id="loading-overlay" class="loading-overlay">
+    <div class="spinner"></div>
+  </div>
+  <div id="toast-container"></div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<script src="../../js/config.js"></script>
-<script src="../../js/main.js"></script>
-<script>
-  const user = requireAuth('relations');
-  if (user) {
-    document.getElementById('sidebar-container').innerHTML = sidebarRelations(user);
-    document.getElementById('topbar-container').innerHTML = topBar('البحث والتقارير','تقارير الأحداث والملاحظات');
-    const today = todayISO(), ago = new Date(); ago.setMonth(ago.getMonth()-1);
-    const agoISO = ago.toISOString().split('T')[0];
-    document.getElementById('ef').value = agoISO; document.getElementById('et').value = today;
-    document.getElementById('fbf').value = agoISO; document.getElementById('fbt2').value = today;
-    populateDeptSelect(document.getElementById('fbd'));
-    setupTableSearch('ev-srch','ev-all');
-    setupTableSearch('fb-srch','fb-all');
-  }
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../../js/config.js"></script>
+  <script src="../../js/main.js"></script>
+  <script>
+    const user = requireAuth('relations');
+    if (user) {
+      document.getElementById('sidebar-container').innerHTML = sidebarRelations(user);
+      document.getElementById('topbar-container').innerHTML = topBar('البحث والتقارير', 'تقارير الأحداث والملاحظات');
+      const today = localISO(new Date());
+      const ago = new Date(); ago.setMonth(ago.getMonth() - 1);
+      const agoISO = localISO(ago);
+      document.getElementById('ef').value = agoISO; document.getElementById('et').value = today;
+      document.getElementById('fbf').value = agoISO; document.getElementById('fbt2').value = today;
+      populateDeptSelect(document.getElementById('fbd'));
+      setupTableSearch('ev-srch', 'ev-all');
+      setupTableSearch('fb-srch', 'fb-all');
+    }
 
-  const ETYPES = ['حادث سير','حادث سقوط',' حادث تسمم','حادث اعتداء','حادث غرق','حادث التماس كهربائي','حادث في المستشفى','حادث حرق','إصابة في مكان العمل'];
+    function localISO(d) { const p = n => String(n).padStart(2, '0'); return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`; }
 
-  async function evReport() {
-    const f=document.getElementById('ef').value, t=document.getElementById('et').value;
-    if(!f||!t){showToast('تنبيه','يرجى تحديد التاريخ','warning');return;}
-    showLoading();
-    try {
-      const {data,error}=await supabase.from('daily_events').select('case_type').gte('event_date',f).lte('event_date',t);
-      if(error) throw error;
-      const cnt={}; ETYPES.forEach(k=>cnt[k]=0);
-      (data||[]).forEach(r=>{if(cnt[r.case_type]!==undefined)cnt[r.case_type]++;});
-      const total=Object.values(cnt).reduce((a,b)=>a+b,0);
-      document.getElementById('ev-rpt-body').innerHTML=ETYPES.map(k=>`<tr><td>${k}</td><td><strong>${cnt[k]}</strong></td><td>${total>0?((cnt[k]/total)*100).toFixed(1)+'%':'0%'}</td></tr>`).join('');
-      document.getElementById('ev-total').textContent=total;
-      document.getElementById('ev-rpt').style.display='block';
-    } catch(err){showToast('خطأ',err.message,'danger');}finally{hideLoading();}
-  }
+    const ETYPES = ['حادث سير', 'حادث سقوط', 'حادث تسمم', 'حادث اعتداء', 'حادث غرق', 'حادث التماس كهربائي', 'حادث في المستشفى', 'حادث حرق', 'إصابة في مكان العمل'];
 
-  async function loadEvAll() {
-    showLoading();
-    try {
-      const {data,error}=await supabase.from('daily_events').select('*').order('event_date',{ascending:false}).limit(500);
-      if(error) throw error;
-      document.getElementById('ev-all-body').innerHTML=(data||[]).map(e=>`<tr><td>${e.event_date}</td><td>${e.shift||'—'}</td><td>${e.patient_name}</td><td><code>${e.file_number}</code></td><td dir="ltr">${e.phone||'—'}</td><td>${e.officer_name||'—'}</td><td>${eventTypeLabel(e.case_type)}</td><td>${e.notes||'—'}</td></tr>`).join('')||'<tr><td colspan="8" class="text-center text-muted">لا توجد بيانات</td></tr>';
-    } catch(err){showToast('خطأ',err.message,'danger');}finally{hideLoading();}
-  }
+    async function evReport() {
+      const f = document.getElementById('ef').value, t = document.getElementById('et').value;
+      if (!f || !t) { showToast('تنبيه', 'يرجى تحديد التاريخ', 'warning'); return; }
+      showLoading();
+      try {
+        const url = `${SUPABASE_URL}/rest/v1/daily_events?select=case_type&event_date=gte.${f}&event_date=lte.${t}`;
+        const res = await fetch(url, { headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY } });
+        const data = await res.json();
+        const error = res.ok ? null : data;
+        if (error) throw new Error(JSON.stringify(error));
+        const cnt = {};
+        (data || []).forEach(r => { const k = r.case_type || 'غير محدد'; cnt[k] = (cnt[k] || 0) + 1; });
+        const allTypes = [...new Set([...ETYPES, ...Object.keys(cnt)])];
+        allTypes.forEach(k => { if (cnt[k] === undefined) cnt[k] = 0; });
+        const total = Object.values(cnt).reduce((a, b) => a + b, 0);
+        document.getElementById('ev-rpt-body').innerHTML = allTypes.filter(k => k !== 'غير محدد' || cnt[k] > 0).map(k => `<tr><td>${k}</td><td><strong>${cnt[k]}</strong></td><td>${total > 0 ? ((cnt[k] / total) * 100).toFixed(1) + '%' : '0%'}</td></tr>`).join('');
+        document.getElementById('ev-total').textContent = total;
+        document.getElementById('ev-rpt').style.display = 'block';
+      } catch (err) { showToast('خطأ', err.message, 'danger'); } finally { hideLoading(); }
+    }
 
-  async function fbReport() {
-    const t=document.getElementById('fbt').value, d=document.getElementById('fbd').value;
-    const p=document.getElementById('fbp').value, f=document.getElementById('fbf').value, t2=document.getElementById('fbt2').value;
-    showLoading();
-    try {
-      let q=supabase.from('feedback').select('*').order('submitted_date',{ascending:false});
-      if(t) q=q.eq('case_type',t); if(d) q=q.eq('department',d);
-      if(p) q=q.eq('priority',p); if(f) q=q.gte('submitted_date',f); if(t2) q=q.lte('submitted_date',t2);
-      const {data,error}=await q; if(error) throw error;
-      document.getElementById('fb-rpt-body').innerHTML=(data||[]).map(fb=>`<tr><td>${fb.submitted_date}</td><td>${fb.patient_name}</td><td><code>${fb.file_number}</code></td><td>${fb.reporter_name}</td><td>${fb.department}</td><td>${caseTypeLabel(fb.case_type)}</td><td>${priorityLabel(fb.priority)}</td><td>${fb.replied?'<span class="badge badge-green">تم الرد</span>':'<span class="badge badge-red">معلق</span>'}</td></tr>`).join('')||'<tr><td colspan="8" class="text-center text-muted">لا نتائج</td></tr>';
-      document.getElementById('fb-rpt-total').textContent=`إجمالي: ${(data||[]).length} ملاحظة`;
-      document.getElementById('fb-rpt').style.display='block';
-    } catch(err){showToast('خطأ',err.message,'danger');}finally{hideLoading();}
-  }
+    async function loadEvAll() {
+      showLoading();
+      try {
+        const { data, error } = await supabase.from('daily_events').select('*').order('event_date', { ascending: false }).limit(500);
+        if (error) throw error;
+        document.getElementById('ev-all-body').innerHTML = (data || []).map(e => `<tr><td>${e.event_date}</td><td>${e.shift || '—'}</td><td>${e.patient_name}</td><td><code>${e.file_number}</code></td><td dir="ltr">${e.phone || '—'}</td><td>${e.officer_name || '—'}</td><td>${eventTypeLabel(e.case_type)}</td><td>${e.notes || '—'}</td></tr>`).join('') || '<tr><td colspan="8" class="text-center text-muted">لا توجد بيانات</td></tr>';
+      } catch (err) { showToast('خطأ', err.message, 'danger'); } finally { hideLoading(); }
+    }
 
-  async function loadFbAll() {
-    showLoading();
-    try {
-      const {data,error}=await supabase.from('feedback').select('*').order('submitted_date',{ascending:false}).limit(500);
-      if(error) throw error;
-      document.getElementById('fb-all-body').innerHTML=(data||[]).map(fb=>`<tr><td>${fb.submitted_date}</td><td>${fb.patient_name}</td><td><code>${fb.file_number}</code></td><td>${fb.reporter_name}</td><td>${fb.department}</td><td>${caseTypeLabel(fb.case_type)}</td><td>${priorityLabel(fb.priority)}</td><td>${fb.replied?'<span class="badge badge-green">تم الرد</span>':'<span class="badge badge-red">معلق</span>'}</td></tr>`).join('')||'<tr><td colspan="8" class="text-center text-muted">لا توجد بيانات</td></tr>';
-    } catch(err){showToast('خطأ',err.message,'danger');}finally{hideLoading();}
-  }
-</script>
+    async function fbReport() {
+      const t = document.getElementById('fbt').value, d = document.getElementById('fbd').value;
+      const p = document.getElementById('fbp').value, f = document.getElementById('fbf').value, t2 = document.getElementById('fbt2').value;
+      showLoading();
+      try {
+        let params = `select=*&order=submitted_date.desc`;
+        if (t) params += `&case_type=eq.${encodeURIComponent(t)}`;
+        if (d) params += `&department=eq.${encodeURIComponent(d)}`;
+        if (p) params += `&priority=eq.${encodeURIComponent(p)}`;
+        if (f) params += `&submitted_date=gte.${f}`;
+        if (t2) params += `&submitted_date=lte.${t2}`;
+        const fbUrl = `${SUPABASE_URL}/rest/v1/feedback?${params}`;
+        const fbRes = await fetch(fbUrl, { headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 'Range': '0-9999' } });
+        const data = await fbRes.json();
+        const error = fbRes.ok ? null : data;
+        if (error) throw new Error(JSON.stringify(error));
+        document.getElementById('fb-rpt-body').innerHTML = (data || []).map(fb => `<tr><td>${fb.submitted_date}</td><td>${fb.patient_name}</td><td><code>${fb.file_number}</code></td><td>${fb.reporter_name}</td><td>${fb.department}</td><td>${caseTypeLabel(fb.case_type)}</td><td>${priorityLabel(fb.priority)}</td><td>${fb.replied ? '<span class="badge badge-green">تم الرد</span>' : '<span class="badge badge-red">معلق</span>'}</td></tr>`).join('') || '<tr><td colspan="8" class="text-center text-muted">لا نتائج</td></tr>';
+        document.getElementById('fb-rpt-total').textContent = `إجمالي: ${(data || []).length} ملاحظة`;
+        document.getElementById('fb-rpt').style.display = 'block';
+      } catch (err) { showToast('خطأ', err.message, 'danger'); } finally { hideLoading(); }
+    }
+
+    async function loadFbAll() {
+      showLoading();
+      try {
+        const { data, error } = await supabase.from('feedback').select('*').order('submitted_date', { ascending: false }).limit(500);
+        if (error) throw error;
+        document.getElementById('fb-all-body').innerHTML = (data || []).map(fb => `<tr><td>${fb.submitted_date}</td><td>${fb.patient_name}</td><td><code>${fb.file_number}</code></td><td>${fb.reporter_name}</td><td>${fb.department}</td><td>${caseTypeLabel(fb.case_type)}</td><td>${priorityLabel(fb.priority)}</td><td>${fb.replied ? '<span class="badge badge-green">تم الرد</span>' : '<span class="badge badge-red">معلق</span>'}</td></tr>`).join('') || '<tr><td colspan="8" class="text-center text-muted">لا توجد بيانات</td></tr>';
+      } catch (err) { showToast('خطأ', err.message, 'danger'); } finally { hideLoading(); }
+    }
+  </script>
 </body>
+
 </html>
