@@ -162,6 +162,14 @@
         <!-- Case info banner -->
         <p id="m-info" class="text-sm text-muted mb-2"
           style="background:var(--neutral-100);padding:.75rem;border-radius:var(--radius)"></p>
+        <div class="form-group mb-2">
+          <label class="form-label">النوع</label>
+          <select id="m-case-type" class="form-control">
+            <option value="شكوى">شكوى</option>
+            <option value="اقتراح">اقتراح</option>
+            <option value="شكر">شكر</option>
+          </select>
+        </div>
 
         <!-- Priority guide cards -->
         <div class="guide-label">🎯 تصنيف الحالات حسب الأولوية — اختر التصنيف المناسب</div>
@@ -397,6 +405,8 @@
       const fb = all.find(f => f.id === id); if (!fb) return;
       curFb = fb;
 
+      document.getElementById('m-case-type').value = fb.case_type || 'شكوى';
+
       document.getElementById('m-info').textContent =
         `${fb.patient_name} | ملف: ${fb.file_number} | ${fb.case_type}`;
 
@@ -424,6 +434,7 @@
     // ── Save ─────────────────────────────────────────────────────────────
     async function saveReply() {
       if (!curId) return;
+      const caseType = document.getElementById('m-case-type').value;
       const priority = document.getElementById('m-pri').value;
       const forwardedDepts = getCheckedDepts('m-depts');
 
@@ -443,6 +454,7 @@
 
       try {
         const { error } = await supabase.from('feedback').update({
+          case_type: caseType,
           priority,
           forwarded_depts: forwardedDepts,
           dept_replies: deptReplies,
@@ -485,3 +497,4 @@
   </script>
 </body>
 </html>
+saveReply
