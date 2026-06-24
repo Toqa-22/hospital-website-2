@@ -141,8 +141,8 @@ function sidebarRelations(user) {
       <a href="daily_event.html"><span class="nav-icon">📋</span> تسجيل حدث يومي</a>
       <a href="today_event.html"><span class="nav-icon">📅</span> أحداث اليوم</a>
       <div class="sidebar-section">الملاحظات</div>
-      <a href="feedback_form.html"><span class="nav-icon">📝</span> نموذج ملاحظة جديدة</a>
-      <a href="feedback.html"><span class="nav-icon">📊</span> إدارة الملاحظات</a>
+      <a href="feedback_form.html"><span class="nav-icon">📝</span> إفادة مراجع</a>
+      <a href="feedback.html"><span class="nav-icon">📊</span> الشكر و الملاحظات</a>
       <div class="sidebar-section">التقارير</div>
       <a href="search.html"><span class="nav-icon">🔍</span> البحث والتقارير</a>
     </nav>
@@ -167,7 +167,7 @@ function sidebarDept(user) {
     <nav class="sidebar-nav">
       <div class="sidebar-section">القسم</div>
       <a href="home.html"><span class="nav-icon">🏠</span> الرئيسية</a>
-      <a href="feedback.html"><span class="nav-icon">📊</span> الشكاوي والاقتراحات</a>
+      <a href="feedback.html"><span class="nav-icon">📊</span> الشكر و الملاحظات</a>
     </nav>
     <div class="sidebar-footer">
       <button class="btn btn-ghost btn-sm w-full" onclick="logout()">🚪 تسجيل الخروج</button>
