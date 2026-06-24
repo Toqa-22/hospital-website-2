@@ -6,6 +6,101 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>البحث والتقارير</title>
   <link rel="stylesheet" href="../../css/style.css">
+  <style>
+    /* ── Report header banner ── */
+    .rpt-header {
+      background: var(--primary-dark);
+      color: #fff;
+      border-radius: var(--radius);
+      padding: 1rem 1.25rem;
+      margin-bottom: 1.25rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: .65rem 1.5rem;
+      align-items: center;
+    }
+
+    .rpt-header .rh-item {
+      font-size: .83rem;
+      opacity: .9;
+    }
+
+    .rpt-header .rh-item strong {
+      font-size: .95rem;
+      opacity: 1;
+      margin-left: .35rem;
+    }
+
+    /* ── Summary stats row ── */
+    .rpt-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: .75rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .rpt-stat {
+      background: var(--neutral-50);
+      border: 1.5px solid var(--neutral-200);
+      border-radius: var(--radius);
+      padding: .85rem 1rem;
+      text-align: center;
+    }
+
+    .rpt-stat .rs-val {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--primary-dark);
+      line-height: 1;
+    }
+
+    .rpt-stat .rs-lbl {
+      font-size: .75rem;
+      color: var(--neutral-600);
+      margin-top: .25rem;
+    }
+
+    /* ── breakdown sub-tables side by side ── */
+    .rpt-breakdowns {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .rpt-breakdown {}
+
+    .rpt-breakdown .bd-title {
+      font-size: .8rem;
+      font-weight: 700;
+      color: var(--primary-dark);
+      margin-bottom: .45rem;
+      padding-bottom: .35rem;
+      border-bottom: 2px solid var(--primary-dark);
+    }
+
+    .rpt-breakdown table {
+      font-size: .83rem;
+    }
+
+    .rpt-breakdown thead th {
+      background: var(--neutral-100);
+      color: var(--neutral-700);
+      font-size: .75rem;
+      padding: .45rem .65rem;
+    }
+
+    .rpt-breakdown tbody td {
+      padding: .45rem .65rem;
+    }
+
+    .rpt-breakdown tfoot td {
+      background: var(--neutral-100);
+      font-weight: 700;
+      padding: .45rem .65rem;
+      font-size: .8rem;
+    }
+  </style>
 </head>
 
 <body>
@@ -15,6 +110,7 @@
       <div id="topbar-container"></div>
       <div class="page-content">
 
+        <!-- ══ Daily Events Report ══ -->
         <div class="card mb-3">
           <div class="card-header"><span class="card-title">📊 تقرير الأحداث اليومية</span></div>
           <div class="card-body">
@@ -81,56 +177,86 @@
           </div>
         </div>
 
+        <!-- ══ Feedback Summary Report ══ -->
         <div class="card">
           <div class="card-header"><span class="card-title">📋 تقرير الملاحظات</span></div>
           <div class="card-body">
+
+            <!-- Filters -->
             <div class="form-grid">
-              <div class="form-group"><label class="form-label">نوع الحالة</label><select class="form-control" id="fbt">
+              <div class="form-group">
+                <label class="form-label">نوع الحالة</label>
+                <select class="form-control" id="fbt">
                   <option value="">الكل</option>
                   <option>شكر</option>
                   <option>اقتراح</option>
                   <option>شكوى</option>
-                </select></div>
-              <div class="form-group"><label class="form-label">القسم</label><select class="form-control" id="fbd">
-                  <option value="">الكل</option>
-                </select></div>
-              <div class="form-group"><label class="form-label">التصنيف</label><select class="form-control" id="fbp">
+                </select>
+              </div>
+              <div class="form-group full" style="grid-column:1/-1">
+                <label class="form-label">الأقسام / الإحالة
+                  <span style="font-size:.75rem;color:var(--neutral-600);font-weight:400">(اختر واحداً أو أكثر — الكل
+                    إذا لم تختر)</span>
+                </label>
+                <div style="position:relative">
+                  <button type="button" class="form-control" id="dept-toggle-btn" onclick="toggleDeptDropdown()"
+                    style="text-align:right;cursor:pointer;display:flex;justify-content:space-between;align-items:center">
+                    <span id="dept-toggle-label">الكل</span>
+                    <span style="font-size:.75rem;opacity:.6">▼</span>
+                  </button>
+                  <div id="dept-dropdown"
+                    style="display:none;position:absolute;z-index:50;top:100%;right:0;left:0;background:#fff;border:1.5px solid var(--primary-light);border-radius:var(--radius);box-shadow:var(--shadow);max-height:220px;overflow-y:auto;padding:.5rem">
+                    <label
+                      style="display:flex;align-items:center;gap:.5rem;padding:.3rem .5rem;font-size:.82rem;cursor:pointer;border-bottom:1px solid var(--neutral-100);margin-bottom:.25rem">
+                      <input type="checkbox" id="dept-all-cb" onchange="toggleAllDepts(this)"
+                        style="accent-color:var(--primary)"> الكل
+                    </label>
+                    <div id="dept-cb-list"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">التصنيف</label>
+                <select class="form-control" id="fbp">
                   <option value="">الكل</option>
                   <option>منخفضة</option>
                   <option>متوسطة</option>
                   <option>عاجلة</option>
-                </select></div>
-              <div class="form-group"><label class="form-label">من تاريخ</label><input type="date" class="form-control"
-                  id="fbf"></div>
-              <div class="form-group"><label class="form-label">إلى تاريخ</label><input type="date" class="form-control"
-                  id="fbt2"></div>
-              <div class="form-group" style="align-self:flex-end"><button class="btn btn-primary"
-                  onclick="fbReport()">📊 إنشاء</button></div>
-            </div>
-            <div id="fb-rpt" style="display:none;margin-top:1.5rem">
-              <div class="flex justify-between items-center mb-2">
-                <strong style="color:var(--primary-dark)">نتائج تقرير الملاحظات</strong>
-                <button class="btn btn-ghost btn-sm" onclick="printSection('fb-rpt-tbl','تقرير الملاحظات')">🖨️</button>
+                </select>
               </div>
-              <div class="table-wrapper">
-                <table id="fb-rpt-tbl">
-                  <thead>
-                    <tr>
-                      <th>التاريخ</th>
-                      <th>المريض</th>
-                      <th>الملف</th>
-                      <th>المشتكي</th>
-                      <th>القسم</th>
-                      <th>النوع</th>
-                      <th>التصنيف</th>
-                      <th>الحالة</th>
-                    </tr>
-                  </thead>
-                  <tbody id="fb-rpt-body"></tbody>
-                </table>
+              <div class="form-group">
+                <label class="form-label">من تاريخ</label>
+                <input type="date" class="form-control" id="fbf">
               </div>
-              <div id="fb-rpt-total" class="text-sm font-bold mt-1" style="color:var(--primary-dark)"></div>
+              <div class="form-group">
+                <label class="form-label">إلى تاريخ</label>
+                <input type="date" class="form-control" id="fbt2">
+              </div>
+              <div class="form-group" style="align-self:flex-end">
+                <button class="btn btn-primary" onclick="fbReport()">📊 إنشاء التقرير</button>
+              </div>
             </div>
+
+            <!-- ── Report output ── -->
+            <div id="fb-rpt" style="display:none;margin-top:1.75rem">
+
+              <!-- Top action bar -->
+              <div class="flex justify-between items-center mb-2" style="flex-wrap:wrap;gap:.5rem">
+                <strong style="color:var(--primary-dark);font-size:1rem">📋 ملخص تقرير الملاحظات</strong>
+                <button class="btn btn-ghost btn-sm" onclick="printFbReport()">🖨️ طباعة التقرير</button>
+              </div>
+
+              <!-- Header banner: date range + applied filters -->
+              <div class="rpt-header" id="fb-rpt-header"></div>
+
+              <!-- KPI stats row -->
+              <div class="rpt-stats" id="fb-rpt-stats"></div>
+
+              <!-- Breakdowns grid -->
+              <div class="rpt-breakdowns" id="fb-rpt-breakdowns"></div>
+
+            </div>
+
             <div class="divider"></div>
             <strong class="text-sm" style="color:var(--primary-dark)">🔍 بحث في الملاحظات</strong>
             <div class="filter-row" style="margin-top:.75rem">
@@ -147,6 +273,7 @@
                     <th>الملف</th>
                     <th>المشتكي</th>
                     <th>القسم</th>
+                    <th>الإحالة</th>
                     <th>النوع</th>
                     <th>التصنيف</th>
                     <th>الحالة</th>
@@ -154,17 +281,19 @@
                 </thead>
                 <tbody id="fb-all-body">
                   <tr>
-                    <td colspan="8" class="text-center text-muted" style="padding:1.5rem">اضغط "تحميل الكل"</td>
+                    <td colspan="9" class="text-center text-muted" style="padding:1.5rem">اضغط "تحميل الكل"</td>
                   </tr>
                 </tbody>
               </table>
             </div>
+
           </div>
         </div>
 
       </div>
     </div>
   </div>
+
   <div id="loading-overlay" class="loading-overlay">
     <div class="spinner"></div>
   </div>
@@ -183,13 +312,290 @@
       const agoISO = localISO(ago);
       document.getElementById('ef').value = agoISO; document.getElementById('et').value = today;
       document.getElementById('fbf').value = agoISO; document.getElementById('fbt2').value = today;
-      populateDeptSelect(document.getElementById('fbd'));
+      populateDeptCheckboxes();
       setupTableSearch('ev-srch', 'ev-all');
       setupTableSearch('fb-srch', 'fb-all');
     }
 
-    function localISO(d) { const p = n => String(n).padStart(2, '0'); return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`; }
+    function localISO(d) {
+      const p = n => String(n).padStart(2, '0');
+      return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+    }
+    function fmtDateAr(iso) {
+      if (!iso) return '—';
+      return new Date(iso).toLocaleDateString('ar-OM', { year: 'numeric', month: 'long', day: 'numeric' });
+    }
 
+    // ── Helpers for count breakdowns ─────────────────────────────────────
+    function countBy(arr, key) {
+      const out = {};
+      arr.forEach(r => { const k = r[key] || 'غير محدد'; out[k] = (out[k] || 0) + 1; });
+      return out;
+    }
+
+    function breakdownTable(title, counts, total, colorFn) {
+      const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+      const rows = sorted.map(([k, v]) => {
+        const badge = colorFn ? colorFn(k) : `<span class="badge badge-gray">${k}</span>`;
+        return `<tr><td>${badge}</td><td><strong>${v}</strong></td></tr>`;
+      }).join('');
+      return `<div class="rpt-breakdown">
+        <div class="bd-title">${title}</div>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>القيمة</th><th>العدد</th></tr></thead>
+            <tbody>${rows || '<tr><td colspan="2" class="text-muted text-center">لا بيانات</td></tr>'}</tbody>
+            <tfoot><tr><td>الإجمالي</td><td><strong>${total}</strong></td></tr></tfoot>
+          </table>
+        </div>
+      </div>`;
+    }
+
+    // ── Dept multi-checkbox helpers ──────────────────────────────────────
+    function populateDeptCheckboxes() {
+      const list = document.getElementById('dept-cb-list');
+      if (!list) return;
+      list.innerHTML = '';
+      ALL_DEPARTMENTS.forEach(d => {
+        const lbl = document.createElement('label');
+        lbl.style.cssText = 'display:flex;align-items:center;gap:.5rem;padding:.3rem .5rem;font-size:.82rem;cursor:pointer;border-radius:4px';
+        lbl.innerHTML = `<input type="checkbox" value="${d}" class="dept-cb" onchange="updateDeptLabel()" style="accent-color:var(--primary)"> ${d}`;
+        list.appendChild(lbl);
+      });
+    }
+
+    function toggleDeptDropdown() {
+      const dd = document.getElementById('dept-dropdown');
+      dd.style.display = dd.style.display === 'none' ? 'block' : 'none';
+    }
+    // Close dropdown when clicking outside
+    document.addEventListener('click', e => {
+      const btn = document.getElementById('dept-toggle-btn');
+      const dd = document.getElementById('dept-dropdown');
+      if (dd && btn && !btn.contains(e.target) && !dd.contains(e.target))
+        dd.style.display = 'none';
+    });
+
+    function toggleAllDepts(cb) {
+      document.querySelectorAll('.dept-cb').forEach(c => c.checked = cb.checked);
+      updateDeptLabel();
+    }
+
+    function getSelectedDepts() {
+      return [...document.querySelectorAll('.dept-cb:checked')].map(c => c.value);
+    }
+
+    function updateDeptLabel() {
+      const sel = getSelectedDepts();
+      const allCb = document.getElementById('dept-all-cb');
+      const total = document.querySelectorAll('.dept-cb').length;
+      if (allCb) allCb.checked = sel.length === total;
+      document.getElementById('dept-toggle-label').textContent =
+        sel.length === 0 ? 'الكل' :
+          sel.length === 1 ? sel[0] :
+            `${sel.length} أقسام مختارة`;
+    }
+
+    // ── Feedback summary report ───────────────────────────────────────────
+    // Keep last fetched data for printing
+    let _lastFbData = [], _lastFbFilters = {};
+
+    async function fbReport() {
+      const caseType = document.getElementById('fbt').value;
+      const depts = getSelectedDepts();   // [] means "all"
+      const priority = document.getElementById('fbp').value;
+      const dateFrom = document.getElementById('fbf').value;
+      const dateTo = document.getElementById('fbt2').value;
+
+      showLoading();
+      try {
+        let params = `select=*&order=submitted_date.desc`;
+        if (caseType) params += `&case_type=eq.${encodeURIComponent(caseType)}`;
+
+        // Multi-dept OR: department=X OR forwarded_depts contains X, for each chosen dept
+        if (depts.length > 0) {
+          const orParts = depts.flatMap(d => [
+            `department.eq.${encodeURIComponent(d)}`,
+            `forwarded_depts.cs.{${encodeURIComponent(d)}}`
+          ]).join(',');
+          params += `&or=(${orParts})`;
+        }
+
+        if (priority) params += `&priority=eq.${encodeURIComponent(priority)}`;
+        if (dateFrom) params += `&submitted_date=gte.${dateFrom}`;
+        if (dateTo) params += `&submitted_date=lte.${dateTo}`;
+
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/feedback?${params}`, {
+          headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 'Range': '0-9999' }
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(JSON.stringify(data));
+
+        _lastFbData = data || [];
+        _lastFbFilters = { caseType, depts, priority, dateFrom, dateTo };
+        renderFbReport(_lastFbData, _lastFbFilters);
+
+      } catch (err) { showToast('خطأ', err.message, 'danger'); }
+      finally { hideLoading(); }
+    }
+
+    function renderFbReport(data, filters) {
+      const total = data.length;
+      const replied = data.filter(r => r.replied).length;
+      const pending = total - replied;
+      const urgent = data.filter(r => r.priority === 'عاجلة').length;
+
+      // ── Header banner ──
+      const filterChips = [];
+      if (filters.dateFrom || filters.dateTo)
+        filterChips.push(`<span class="rh-item">📅 الفترة: <strong>${fmtDateAr(filters.dateFrom)} — ${fmtDateAr(filters.dateTo)}</strong></span>`);
+      if (filters.caseType)
+        filterChips.push(`<span class="rh-item">🗂 نوع الحالة: <strong>${filters.caseType}</strong></span>`);
+      if (filters.depts && filters.depts.length > 0)
+        filterChips.push(`<span class="rh-item">🏢 القسم / الإحالة: <strong>${filters.depts.length === 1 ? filters.depts[0] : filters.depts.length + ' أقسام'}</strong></span>`);
+      if (filters.priority)
+        filterChips.push(`<span class="rh-item">🎯 التصنيف: <strong>${filters.priority}</strong></span>`);
+      filterChips.push(`<span class="rh-item" style="margin-right:auto;opacity:.6;font-size:.75rem">تاريخ إنشاء التقرير: ${new Date().toLocaleDateString('ar-OM')}</span>`);
+      document.getElementById('fb-rpt-header').innerHTML = filterChips.join('');
+
+      // ── KPI row ──
+      document.getElementById('fb-rpt-stats').innerHTML = `
+        <div class="rpt-stat"><div class="rs-val">${total}</div><div class="rs-lbl">إجمالي الملاحظات</div></div>
+        <div class="rpt-stat" style="border-color:var(--success)"><div class="rs-val" style="color:var(--success)">${replied}</div><div class="rs-lbl">تم الرد</div></div>
+        <div class="rpt-stat" style="border-color:var(--warning)"><div class="rs-val" style="color:var(--warning)">${pending}</div><div class="rs-lbl">معلق</div></div>
+        <div class="rpt-stat" style="border-color:var(--danger)"><div class="rs-val" style="color:var(--danger)">${urgent}</div><div class="rs-lbl">عاجلة</div></div>
+      `;
+
+      // ── Breakdowns ──
+      const byType = countBy(data, 'case_type');
+      const byPriority = countBy(data, 'priority');
+      const byStatus = { 'تم الرد': replied, 'معلق': pending };
+
+      // Count department + forwarded_depts — restrict to selected depts if any chosen
+      const selectedDepts = filters.depts && filters.depts.length > 0 ? new Set(filters.depts) : null;
+      const byDeptRaw = {};
+      data.forEach(r => {
+        const depts = new Set();
+        if (r.department) depts.add(r.department);
+        (r.forwarded_depts || []).forEach(d => depts.add(d));
+        depts.forEach(d => {
+          if (!selectedDepts || selectedDepts.has(d))
+            byDeptRaw[d] = (byDeptRaw[d] || 0) + 1;
+        });
+      });
+      // Ensure all selected depts appear even if count=0
+      const byDept = selectedDepts
+        ? Object.fromEntries([...selectedDepts].map(d => [d, byDeptRaw[d] || 0]))
+        : byDeptRaw;
+      const deptTotal = Object.values(byDept).reduce((a, b) => a + b, 0);
+
+      document.getElementById('fb-rpt-breakdowns').innerHTML =
+        breakdownTable('حسب نوع الحالة', byType, total, k => caseTypeLabel(k)) +
+        breakdownTable('حسب التصنيف', byPriority, total, k => priorityLabel(k)) +
+        breakdownTable('حسب الحالة', byStatus, total, k =>
+          k === 'تم الرد'
+            ? '<span class="badge badge-green">تم الرد</span>'
+            : '<span class="badge badge-orange">معلق</span>') +
+        breakdownTable('حسب القسم', byDept, deptTotal, k => `<span class="text-sm">${k}</span>`);
+
+      document.getElementById('fb-rpt').style.display = 'block';
+      document.getElementById('fb-rpt').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    // ── Print the summary report ──────────────────────────────────────────
+    function printFbReport() {
+      if (!_lastFbData.length && !Object.keys(_lastFbFilters).length) {
+        showToast('تنبيه', 'أنشئ التقرير أولاً', 'warning'); return;
+      }
+      const data = _lastFbData;
+      const filters = _lastFbFilters;
+      const total = data.length;
+      const replied = data.filter(r => r.replied).length;
+      const pending = total - replied;
+      const urgent = data.filter(r => r.priority === 'عاجلة').length;
+      const byType = countBy(data, 'case_type');
+      const byPri = countBy(data, 'priority');
+      const selectedDeptsPrint = filters.depts && filters.depts.length > 0 ? new Set(filters.depts) : null;
+      const byDeptRawP = {};
+      data.forEach(r => {
+        const depts = new Set();
+        if (r.department) depts.add(r.department);
+        (r.forwarded_depts || []).forEach(d => depts.add(d));
+        depts.forEach(d => {
+          if (!selectedDeptsPrint || selectedDeptsPrint.has(d))
+            byDeptRawP[d] = (byDeptRawP[d] || 0) + 1;
+        });
+      });
+      const byDept = selectedDeptsPrint
+        ? Object.fromEntries([...selectedDeptsPrint].map(d => [d, byDeptRawP[d] || 0]))
+        : byDeptRawP;
+      const deptTotal = Object.values(byDept).reduce((a, b) => a + b, 0);
+
+      const tblHtml = (title, counts, customTotal) => {
+        const t = customTotal !== undefined ? customTotal : total;
+        const rows = Object.entries(counts).sort((a, b) => b[1] - a[1])
+          .map(([k, v]) => `<tr><td>${k}</td><td>${v}</td></tr>`).join('');
+        return `<h3>${title}</h3>
+          <table>
+            <thead><tr><th>القيمة</th><th>العدد</th></tr></thead>
+            <tbody>${rows}</tbody>
+            <tfoot><tr><td>الإجمالي</td><td>${t}</td></tr></tfoot>
+          </table>`;
+      };
+
+      const deptBannerText = filters.depts && filters.depts.length > 0
+        ? (filters.depts.length === 1 ? filters.depts[0] : filters.depts.join(' | '))
+        : null;
+
+      const w = window.open('', '_blank', 'width=820,height=700');
+      w.document.write(`<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8">
+      <title>تقرير الملاحظات</title>
+      <style>
+        body{font-family:'Segoe UI',Arial,sans-serif;direction:rtl;padding:2rem;font-size:11pt;color:#0F1923}
+        h1{color:#072A4A;margin-bottom:.25rem;font-size:15pt}
+        .sub{color:#666;font-size:9pt;margin-bottom:1.5rem}
+        .banner{background:#072A4A;color:#fff;padding:.8rem 1rem;border-radius:6px;margin-bottom:1.25rem;font-size:10pt}
+        .banner span{margin-left:1.5rem}
+        .kpis{display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:1.5rem}
+        .kpi{border:1.5px solid #D5DDE5;border-radius:6px;padding:.65rem 1rem;text-align:center;min-width:100px}
+        .kpi .v{font-size:1.5rem;font-weight:700;color:#072A4A}
+        .kpi .l{font-size:8.5pt;color:#4A5F73}
+        h3{color:#072A4A;margin:.1.25rem 0 .4rem;font-size:11pt;border-bottom:2px solid #072A4A;padding-bottom:.3rem}
+        table{width:100%;border-collapse:collapse;margin-bottom:1.25rem;font-size:10pt}
+        th{background:#072A4A;color:#fff;padding:6px 9px;text-align:right}
+        td{padding:6px 9px;border-bottom:1px solid #eee}
+        tfoot td{background:#EEF2F6;font-weight:700}
+        .cols{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem}
+        @media print{body{padding:.5cm}.kpis{page-break-inside:avoid}}
+      </style></head><body>
+      <h1>🏥 مستشفى إبراء — تقرير الملاحظات</h1>
+      <p class="sub">تاريخ الإنشاء: ${new Date().toLocaleDateString('ar-OM')}</p>
+      <div class="banner">
+        ${filters.dateFrom || filters.dateTo ? `<span>📅 الفترة: ${fmtDateAr(filters.dateFrom)} — ${fmtDateAr(filters.dateTo)}</span>` : '<span>📅 جميع التواريخ</span>'}
+        ${filters.caseType ? `<span>🗂 نوع الحالة: ${filters.caseType}</span>` : ''}
+        ${deptBannerText ? `<span>🏢 القسم / الإحالة: ${deptBannerText}</span>` : ''}
+        ${filters.priority ? `<span>🎯 التصنيف: ${filters.priority}</span>` : ''}
+      </div>
+      <div class="kpis">
+        <div class="kpi"><div class="v">${total}</div><div class="l">إجمالي الملاحظات</div></div>
+        <div class="kpi"><div class="v" style="color:#1A7F54">${replied}</div><div class="l">تم الرد</div></div>
+        <div class="kpi"><div class="v" style="color:#E67E22">${pending}</div><div class="l">معلق</div></div>
+        <div class="kpi"><div class="v" style="color:#C0392B">${urgent}</div><div class="l">عاجلة</div></div>
+      </div>
+      <div class="cols">
+        ${tblHtml('حسب نوع الحالة', byType)}
+        ${tblHtml('حسب التصنيف', byPri)}
+      </div>
+      <div class="cols">
+        ${tblHtml('حسب الحالة', { 'تم الرد': replied, 'معلق': pending })}
+        ${tblHtml('حسب القسم', byDept, deptTotal)}
+      </div>
+      <script>window.onload=()=>window.print();<\/script>
+      </body></html>`);
+      w.document.close();
+    }
+
+    // ── Daily events report (unchanged) ──────────────────────────────────
     const ETYPES = ['حادث سير', 'حادث سقوط', 'حادث تسمم', 'حادث اعتداء', 'حادث غرق', 'حادث التماس كهربائي', 'حادث في المستشفى', 'حادث حرق', 'إصابة في مكان العمل'];
 
     async function evReport() {
@@ -200,17 +606,20 @@
         const url = `${SUPABASE_URL}/rest/v1/daily_events?select=case_type&event_date=gte.${f}&event_date=lte.${t}`;
         const res = await fetch(url, { headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY } });
         const data = await res.json();
-        const error = res.ok ? null : data;
-        if (error) throw new Error(JSON.stringify(error));
+        if (!res.ok) throw new Error(JSON.stringify(data));
         const cnt = {};
         (data || []).forEach(r => { const k = r.case_type || 'غير محدد'; cnt[k] = (cnt[k] || 0) + 1; });
         const allTypes = [...new Set([...ETYPES, ...Object.keys(cnt)])];
         allTypes.forEach(k => { if (cnt[k] === undefined) cnt[k] = 0; });
         const total = Object.values(cnt).reduce((a, b) => a + b, 0);
-        document.getElementById('ev-rpt-body').innerHTML = allTypes.filter(k => k !== 'غير محدد' || cnt[k] > 0).map(k => `<tr><td>${k}</td><td><strong>${cnt[k]}</strong></td><td>${total > 0 ? ((cnt[k] / total) * 100).toFixed(1) + '%' : '0%'}</td></tr>`).join('');
+        document.getElementById('ev-rpt-body').innerHTML = allTypes
+          .filter(k => k !== 'غير محدد' || cnt[k] > 0)
+          .map(k => `<tr><td>${k}</td><td><strong>${cnt[k]}</strong></td><td>${total > 0 ? ((cnt[k] / total) * 100).toFixed(1) + '%' : '0%'}</td></tr>`)
+          .join('');
         document.getElementById('ev-total').textContent = total;
         document.getElementById('ev-rpt').style.display = 'block';
-      } catch (err) { showToast('خطأ', err.message, 'danger'); } finally { hideLoading(); }
+      } catch (err) { showToast('خطأ', err.message, 'danger'); }
+      finally { hideLoading(); }
     }
 
     async function loadEvAll() {
@@ -219,29 +628,8 @@
         const { data, error } = await supabase.from('daily_events').select('*').order('event_date', { ascending: false }).limit(500);
         if (error) throw error;
         document.getElementById('ev-all-body').innerHTML = (data || []).map(e => `<tr><td>${e.event_date}</td><td>${e.shift || '—'}</td><td>${e.patient_name}</td><td><code>${e.file_number}</code></td><td dir="ltr">${e.phone || '—'}</td><td>${e.officer_name || '—'}</td><td>${eventTypeLabel(e.case_type)}</td><td>${e.notes || '—'}</td></tr>`).join('') || '<tr><td colspan="8" class="text-center text-muted">لا توجد بيانات</td></tr>';
-      } catch (err) { showToast('خطأ', err.message, 'danger'); } finally { hideLoading(); }
-    }
-
-    async function fbReport() {
-      const t = document.getElementById('fbt').value, d = document.getElementById('fbd').value;
-      const p = document.getElementById('fbp').value, f = document.getElementById('fbf').value, t2 = document.getElementById('fbt2').value;
-      showLoading();
-      try {
-        let params = `select=*&order=submitted_date.desc`;
-        if (t) params += `&case_type=eq.${encodeURIComponent(t)}`;
-        if (d) params += `&department=eq.${encodeURIComponent(d)}`;
-        if (p) params += `&priority=eq.${encodeURIComponent(p)}`;
-        if (f) params += `&submitted_date=gte.${f}`;
-        if (t2) params += `&submitted_date=lte.${t2}`;
-        const fbUrl = `${SUPABASE_URL}/rest/v1/feedback?${params}`;
-        const fbRes = await fetch(fbUrl, { headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 'Range': '0-9999' } });
-        const data = await fbRes.json();
-        const error = fbRes.ok ? null : data;
-        if (error) throw new Error(JSON.stringify(error));
-        document.getElementById('fb-rpt-body').innerHTML = (data || []).map(fb => `<tr><td>${fb.submitted_date}</td><td>${fb.patient_name}</td><td><code>${fb.file_number}</code></td><td>${fb.reporter_name}</td><td>${fb.department}</td><td>${caseTypeLabel(fb.case_type)}</td><td>${priorityLabel(fb.priority)}</td><td>${fb.replied ? '<span class="badge badge-green">تم الرد</span>' : '<span class="badge badge-red">معلق</span>'}</td></tr>`).join('') || '<tr><td colspan="8" class="text-center text-muted">لا نتائج</td></tr>';
-        document.getElementById('fb-rpt-total').textContent = `إجمالي: ${(data || []).length} ملاحظة`;
-        document.getElementById('fb-rpt').style.display = 'block';
-      } catch (err) { showToast('خطأ', err.message, 'danger'); } finally { hideLoading(); }
+      } catch (err) { showToast('خطأ', err.message, 'danger'); }
+      finally { hideLoading(); }
     }
 
     async function loadFbAll() {
@@ -249,8 +637,25 @@
       try {
         const { data, error } = await supabase.from('feedback').select('*').order('submitted_date', { ascending: false }).limit(500);
         if (error) throw error;
-        document.getElementById('fb-all-body').innerHTML = (data || []).map(fb => `<tr><td>${fb.submitted_date}</td><td>${fb.patient_name}</td><td><code>${fb.file_number}</code></td><td>${fb.reporter_name}</td><td>${fb.department}</td><td>${caseTypeLabel(fb.case_type)}</td><td>${priorityLabel(fb.priority)}</td><td>${fb.replied ? '<span class="badge badge-green">تم الرد</span>' : '<span class="badge badge-red">معلق</span>'}</td></tr>`).join('') || '<tr><td colspan="8" class="text-center text-muted">لا توجد بيانات</td></tr>';
-      } catch (err) { showToast('خطأ', err.message, 'danger'); } finally { hideLoading(); }
+        document.getElementById('fb-all-body').innerHTML = (data || []).map(fb => {
+          const fwd = (fb.forwarded_depts || []);
+          const fwdHtml = fwd.length
+            ? fwd.map(d => `<span class="badge badge-blue" style="margin:1px;font-size:.65rem">${d}</span>`).join('')
+            : '<span class="badge badge-gray" style="font-size:.65rem">—</span>';
+          return `<tr>
+            <td>${fb.submitted_date}</td>
+            <td>${fb.patient_name}</td>
+            <td><code>${fb.file_number}</code></td>
+            <td>${fb.reporter_name}</td>
+            <td class="text-sm">${fb.department || '—'}</td>
+            <td class="text-sm">${fwdHtml}</td>
+            <td>${caseTypeLabel(fb.case_type)}</td>
+            <td>${priorityLabel(fb.priority)}</td>
+            <td>${fb.replied ? '<span class="badge badge-green">تم الرد</span>' : '<span class="badge badge-red">معلق</span>'}</td>
+          </tr>`;
+        }).join('') || '<tr><td colspan="9" class="text-center text-muted">لا توجد بيانات</td></tr>';
+      } catch (err) { showToast('خطأ', err.message, 'danger'); }
+      finally { hideLoading(); }
     }
   </script>
 </body>
